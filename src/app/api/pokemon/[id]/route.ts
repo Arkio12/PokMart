@@ -1,10 +1,11 @@
 import { prisma } from '@/lib/prisma';
 import { NextResponse } from 'next/server';
 
-export async function GET(request: Request, { params }: { params: Record<string, string> }) {
+export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const { id } = await params;
     const pokemon = await prisma.pokemon.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: {
         types: true,
       },
@@ -45,20 +46,21 @@ export async function GET(request: Request, { params }: { params: Record<string,
   }
 }
 
-export async function PUT(request: Request, { params }: { params: Record<string, string> }) {
+export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const { id } = await params;
     const body = await request.json();
     const { name, image, price, description, inStock, featured, hp, attack, defense, speed, types } = body;
 
-    console.log(`Updating Pokemon ${params.id} with data:`, { inStock, ...body });
+    console.log(`Updating Pokemon ${id} with data:`, { inStock, ...body });
 
     // First, check if the Pokemon exists
     const existingPokemon = await prisma.pokemon.findUnique({
-      where: { id: params.id },
+      where: { id },
     });
 
     if (!existingPokemon) {
-      console.error(`Pokemon with id ${params.id} not found`);
+      console.error(`Pokemon with id ${id} not found`);
       return NextResponse.json(
         { error: 'Pokemon not found' },
         { status: 404 }
@@ -68,7 +70,7 @@ export async function PUT(request: Request, { params }: { params: Record<string,
     // First, delete existing types if types are being updated
     if (types) {
       await prisma.pokemonType.deleteMany({
-        where: { pokemonId: params.id },
+        where: { pokemonId: id },
       });
     }
 
@@ -97,7 +99,7 @@ export async function PUT(request: Request, { params }: { params: Record<string,
 
     // Update the pokemon
     const pokemon = await prisma.pokemon.update({
-      where: { id: params.id },
+      where: { id },
       data: updateData,
       include: {
         types: true,
@@ -134,10 +136,11 @@ export async function PUT(request: Request, { params }: { params: Record<string,
   }
 }
 
-export async function DELETE(request: Request, { params }: { params: Record<string, string> }) {
+export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const { id } = await params;
     await prisma.pokemon.delete({
-      where: { id: params.id },
+      where: { id },
     });
 
     return NextResponse.json({ message: 'Pokemon deleted successfully' });
