@@ -44,7 +44,7 @@ export function InventoryModal({ isOpen, onClose }: InventoryModalProps) {
     setFilteredPokemon(filtered);
   }, [searchTerm, statusFilter, pokemon]);
 
-  const handleToggleStock = (id: number) => {
+  const handleToggleStock = (id: string) => {
     toggleStock(id);
   };
 
