@@ -11,7 +11,8 @@ import {
   Star,
   Activity,
   Trash2,
-  Archive
+  Archive,
+  RotateCcw
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { AddPokemonModal } from "@/components/AddPokemonModal";
@@ -42,7 +43,7 @@ interface DashboardStats {
 }
 
 export default function AdminDashboard() {
-  const { pokemon, addPokemon } = usePokemon();
+  const { pokemon, addPokemon, resetToDefaults } = usePokemon();
   const [isAddPokemonModalOpen, setIsAddPokemonModalOpen] = useState(false);
   const [isAnalyticsModalOpen, setIsAnalyticsModalOpen] = useState(false);
   const [isManageUsersModalOpen, setIsManageUsersModalOpen] = useState(false);
@@ -279,6 +280,13 @@ export default function AdminDashboard() {
           >
             <Archive size={24} className="text-yellow-600 mb-2" />
             <p className="font-medium text-yellow-900">Manage Stock</p>
+          </button>
+          <button 
+            onClick={() => resetToDefaults()}
+            className="p-4 bg-pink-50 hover:bg-pink-100 rounded-lg transition-colors cursor-pointer"
+          >
+            <RotateCcw size={24} className="text-pink-600 mb-2" />
+            <p className="font-medium text-pink-900">Reset to Defaults</p>
           </button>
         </div>
       </motion.div>

@@ -10,6 +10,7 @@ interface PokemonContextType {
   updatePokemon: (id: string, updatedPokemon: Partial<Pokemon>) => void;
   deletePokemon: (id: string) => void;
   toggleStock: (id: string) => void;
+  resetToDefaults: () => void;
   featuredPokemon: Pokemon[];
   loading: boolean;
 }
@@ -24,10 +25,20 @@ export function PokemonProvider({ children }: { children: ReactNode }) {
     // Load initial pokemon data
     const loadPokemon = async () => {
       try {
-        // In a real app, this would be an API call
-        setPokemon(mockPokemon);
+        // Try to load from localStorage first
+        const storedPokemon = localStorage.getItem('pokemonData');
+        if (storedPokemon) {
+          setPokemon(JSON.parse(storedPokemon));
+        } else {
+          // Fallback to mock data
+          setPokemon(mockPokemon);
+          // Save initial data to localStorage
+          localStorage.setItem('pokemonData', JSON.stringify(mockPokemon));
+        }
       } catch (error) {
         console.error('Error loading pokemon:', error);
+        // Fallback to mock data if localStorage fails
+        setPokemon(mockPokemon);
       } finally {
         setLoading(false);
       }
@@ -35,6 +46,13 @@ export function PokemonProvider({ children }: { children: ReactNode }) {
 
     loadPokemon();
   }, []);
+
+  // Save pokemon data to localStorage whenever it changes
+  useEffect(() => {
+    if (!loading) {
+      localStorage.setItem('pokemonData', JSON.stringify(pokemon));
+    }
+  }, [pokemon, loading]);
 
   const addPokemon = (newPokemon: Omit<Pokemon, 'id'>) => {
     const maxId = Math.max(...pokemon.map(p => parseInt(p.id)), 0);
@@ -62,6 +80,11 @@ export function PokemonProvider({ children }: { children: ReactNode }) {
     setPokemon(prev => prev.filter(p => p.id !== id));
   };
 
+  const resetToDefaults = () => {
+    setPokemon(mockPokemon);
+    localStorage.setItem('pokemonData', JSON.stringify(mockPokemon));
+  };
+
   const featuredPokemon = pokemon.filter(p => p.featured);
 
   const value: PokemonContextType = {
@@ -70,6 +93,7 @@ export function PokemonProvider({ children }: { children: ReactNode }) {
     updatePokemon,
     deletePokemon,
     toggleStock,
+    resetToDefaults,
     featuredPokemon,
     loading
   };
