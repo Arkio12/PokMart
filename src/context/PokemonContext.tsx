@@ -25,17 +25,21 @@ export function PokemonProvider({ children }: { children: ReactNode }) {
     // Load initial pokemon data
     const loadPokemon = async () => {
       try {
+        console.log('Loading Pokemon data...');
         // Try to load from API first
         const response = await fetch('/api/pokemon');
         if (response.ok) {
           const data = await response.json();
+          console.log('Loaded Pokemon from API:', data.length, 'items');
           setPokemon(data);
         } else {
+          console.log('API request failed, using mock data');
           // Fallback to mock data if API fails
           setPokemon(mockPokemon);
         }
       } catch (error) {
         console.error('Error loading pokemon:', error);
+        console.log('Using mock data due to error');
         // Fallback to mock data if API fails
         setPokemon(mockPokemon);
       } finally {
@@ -66,9 +70,13 @@ export function PokemonProvider({ children }: { children: ReactNode }) {
   const toggleStock = async (id: string) => {
     // Find the pokemon to get its current state
     const pokemonToUpdate = pokemon.find(p => p.id === id);
-    if (!pokemonToUpdate) return;
+    if (!pokemonToUpdate) {
+      console.error('Pokemon not found with id:', id);
+      return;
+    }
 
     const newInStockValue = !pokemonToUpdate.inStock;
+    console.log(`Toggling stock for ${pokemonToUpdate.name} (${id}): ${pokemonToUpdate.inStock} -> ${newInStockValue}`);
 
     // Update locally first for immediate UI feedback
     setPokemon(prev => 
@@ -88,24 +96,28 @@ export function PokemonProvider({ children }: { children: ReactNode }) {
       });
 
       if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Failed to update stock status:', response.status, errorText);
         // If API call fails, revert the local state
         setPokemon(prev => 
           prev.map(p => p.id === id ? { ...p, inStock: pokemonToUpdate.inStock } : p)
         );
-        console.error('Failed to update stock status');
+        alert('Failed to update stock status. Please try again.');
       } else {
-        // Optional: Update with the response data to ensure consistency
+        // Update with the response data to ensure consistency
         const updatedPokemon = await response.json();
+        console.log('Stock status updated successfully:', updatedPokemon);
         setPokemon(prev => 
           prev.map(p => p.id === id ? updatedPokemon : p)
         );
       }
     } catch (error) {
+      console.error('Error updating stock status:', error);
       // If API call fails, revert the local state
       setPokemon(prev => 
         prev.map(p => p.id === id ? { ...p, inStock: pokemonToUpdate.inStock } : p)
       );
-      console.error('Error updating stock status:', error);
+      alert('Network error. Please check your connection and try again.');
     }
   };
 

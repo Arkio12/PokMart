@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server';
 
 export async function GET() {
   try {
+    console.log('Fetching Pokemon from database...');
     const pokemon = await prisma.pokemon.findMany({
       include: {
         types: true,
@@ -12,6 +13,8 @@ export async function GET() {
       },
     });
 
+    console.log(`Found ${pokemon.length} Pokemon in database`);
+    
     // Transform the data to match your existing Pokemon interface
     const transformedPokemon = pokemon.map((p) => ({
       id: p.id,
@@ -30,6 +33,7 @@ export async function GET() {
       },
     }));
 
+    console.log('Transformed Pokemon data for API response');
     return NextResponse.json(transformedPokemon);
   } catch (error) {
     console.error('Error fetching Pokemon:', error);

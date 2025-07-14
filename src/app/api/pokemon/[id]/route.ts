@@ -50,6 +50,21 @@ export async function PUT(request: Request, { params }: { params: { id: string }
     const body = await request.json();
     const { name, image, price, description, inStock, featured, hp, attack, defense, speed, types } = body;
 
+    console.log(`Updating Pokemon ${params.id} with data:`, { inStock, ...body });
+
+    // First, check if the Pokemon exists
+    const existingPokemon = await prisma.pokemon.findUnique({
+      where: { id: params.id },
+    });
+
+    if (!existingPokemon) {
+      console.error(`Pokemon with id ${params.id} not found`);
+      return NextResponse.json(
+        { error: 'Pokemon not found' },
+        { status: 404 }
+      );
+    }
+
     // First, delete existing types if types are being updated
     if (types) {
       await prisma.pokemonType.deleteMany({
@@ -78,6 +93,8 @@ export async function PUT(request: Request, { params }: { params: { id: string }
       };
     }
 
+    console.log('Update data:', updateData);
+
     // Update the pokemon
     const pokemon = await prisma.pokemon.update({
       where: { id: params.id },
@@ -86,6 +103,8 @@ export async function PUT(request: Request, { params }: { params: { id: string }
         types: true,
       },
     });
+
+    console.log('Pokemon updated successfully:', pokemon);
 
     // Transform the data to match your existing Pokemon interface
     const transformedPokemon = {
@@ -109,7 +128,7 @@ export async function PUT(request: Request, { params }: { params: { id: string }
   } catch (error) {
     console.error('Error updating Pokemon:', error);
     return NextResponse.json(
-      { error: 'Failed to update Pokemon' },
+      { error: 'Failed to update Pokemon', details: error.message },
       { status: 500 }
     );
   }
