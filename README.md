@@ -15,6 +15,8 @@ A modern, Pokemon-themed e-commerce platform built with Next.js 14, TypeScript, 
 - **Quantity Management** - Adjust quantities with intuitive controls
 - **Price Calculation** - Real-time total calculation with formatting
 - **Persistent Cart State** - Cart persists across page navigation
+- **Inventory Management** - Real-time stock tracking and updates
+- **Admin Panel** - Complete inventory management system
 
 ### 🎨 Modern UI/UX
 - **Pokemon-themed Design** - Beautiful gradients and colors inspired by Pokemon types
@@ -52,7 +54,16 @@ A modern, Pokemon-themed e-commerce platform built with Next.js 14, TypeScript, 
    pnpm install
    ```
 
-3. **Run the development server**
+3. **Set up the database**
+   ```bash
+   # Create database and apply schema
+   npm run db:push
+   
+   # Seed database with Pokemon data
+   npm run db:seed
+   ```
+
+4. **Run the development server**
    ```bash
    npm run dev
    # or
@@ -61,7 +72,7 @@ A modern, Pokemon-themed e-commerce platform built with Next.js 14, TypeScript, 
    pnpm dev
    ```
 
-4. **Open your browser**
+5. **Open your browser**
    Navigate to [http://localhost:3000](http://localhost:3000)
 
 ## 📱 Pages
