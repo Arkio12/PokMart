@@ -22,6 +22,7 @@ export class PokemonService {
         inStock: p.inStock,
         featured: p.featured,
         type: p.types.map((t) => t.type) as any,
+        category: 'pokemon' as const,
         stats: {
           hp: p.hp,
           attack: p.attack,
@@ -58,6 +59,7 @@ export class PokemonService {
         inStock: p.inStock,
         featured: p.featured,
         type: p.types.map((t) => t.type) as any,
+        category: 'pokemon' as const,
         stats: {
           hp: p.hp,
           attack: p.attack,
@@ -91,6 +93,7 @@ export class PokemonService {
         inStock: pokemon.inStock,
         featured: pokemon.featured,
         type: pokemon.types.map((t) => t.type) as any,
+        category: 'pokemon' as const,
         stats: {
           hp: pokemon.hp,
           attack: pokemon.attack,
@@ -131,6 +134,7 @@ export class PokemonService {
         inStock: p.inStock,
         featured: p.featured,
         type: p.types.map((t) => t.type) as any,
+        category: 'pokemon' as const,
         stats: {
           hp: p.hp,
           attack: p.attack,
@@ -171,6 +175,7 @@ export class PokemonService {
         inStock: p.inStock,
         featured: p.featured,
         type: p.types.map((t) => t.type) as any,
+        category: 'pokemon' as const,
         stats: {
           hp: p.hp,
           attack: p.attack,
