@@ -17,7 +17,7 @@ interface AnalyticsData {
   avgOrderValue: number;
   conversionRate: number;
   topSellingPokemon: Array<{
-    id: number;
+    id: string;
     name: string;
     sales: number;
     revenue: number;
