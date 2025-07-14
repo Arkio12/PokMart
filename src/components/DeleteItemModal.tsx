@@ -15,7 +15,7 @@ export function DeleteItemModal({ isOpen, onClose }: DeleteItemModalProps) {
   const { pokemon, deletePokemon } = usePokemon();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'inStock' | 'outOfStock'>('all');
-  const [selectedItems, setSelectedItems] = useState<number[]>([]);
+  const [selectedItems, setSelectedItems] = useState<string[]>([]);
   const [filteredPokemon, setFilteredPokemon] = useState<Pokemon[]>([]);
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<Pokemon | null>(null);
@@ -70,7 +70,7 @@ export function DeleteItemModal({ isOpen, onClose }: DeleteItemModalProps) {
     setSelectedItems([]);
   };
 
-  const toggleItemSelection = (id: number) => {
+  const toggleItemSelection = (id: string) => {
     setSelectedItems(prev => 
       prev.includes(id) 
         ? prev.filter(itemId => itemId !== id)
