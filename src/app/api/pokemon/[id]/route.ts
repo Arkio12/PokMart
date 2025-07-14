@@ -1,7 +1,7 @@
 import { prisma } from '@/lib/prisma';
 import { NextResponse } from 'next/server';
 
-export async function GET(request: Request, { params }: { params: { id: string } }) {
+export async function GET(request: Request, { params }: { params: Record<string, string> }) {
   try {
     const pokemon = await prisma.pokemon.findUnique({
       where: { id: params.id },
@@ -45,7 +45,7 @@ export async function GET(request: Request, { params }: { params: { id: string }
   }
 }
 
-export async function PUT(request: Request, { params }: { params: { id: string } }) {
+export async function PUT(request: Request, { params }: { params: Record<string, string> }) {
   try {
     const body = await request.json();
     const { name, image, price, description, inStock, featured, hp, attack, defense, speed, types } = body;
@@ -134,7 +134,7 @@ export async function PUT(request: Request, { params }: { params: { id: string }
   }
 }
 
-export async function DELETE(request: Request, { params }: { params: { id: string } }) {
+export async function DELETE(request: Request, { params }: { params: Record<string, string> }) {
   try {
     await prisma.pokemon.delete({
       where: { id: params.id },

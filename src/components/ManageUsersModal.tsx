@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { X, Users, Search, Filter, UserPlus, Edit3, Trash2, Shield, ShieldCheck, Mail, Calendar, ShoppingCart, Ban, CheckCircle, AlertCircle, MoreHorizontal } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
@@ -51,7 +51,7 @@ export function ManageUsersModal({ isOpen, onClose }: ManageUsersModalProps) {
     adminUsers: 0
   });
 
-  const loadUsers = () => {
+  const loadUsers = useCallback(() => {
     const authUsers = getAllUsers();
     setUsers(authUsers);
     setFilteredUsers(authUsers);
@@ -65,13 +65,13 @@ export function ManageUsersModal({ isOpen, onClose }: ManageUsersModalProps) {
       adminUsers: authUsers.filter(u => u.role === 'admin').length
     };
     setStats(newStats);
-  };
+  }, [getAllUsers]);
 
   useEffect(() => {
     if (isOpen) {
       loadUsers();
     }
-  }, [isOpen]);
+  }, [isOpen, loadUsers]);
 
   useEffect(() => {
     let filtered = users;
