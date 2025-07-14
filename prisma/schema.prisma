@@ -1,49 +1,39 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "sqlite"
   url      = env("DATABASE_URL")
 }
 
 model Pokemon {
-  id          String   @id @default(cuid())
-  name        String   @unique
+  id          String        @id @default(cuid())
+  name        String        @unique
   image       String
   price       Float
   description String
-  inStock     Boolean  @default(true)
-  featured    Boolean  @default(false)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  
-  // Stats
+  inStock     Boolean       @default(true)
+  featured    Boolean       @default(false)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
   hp          Int
   attack      Int
   defense     Int
   speed       Int
-  
-  // Relations
-  types       PokemonType[]
   cartItems   CartItem[]
   orders      OrderItem[]
-  
+  types       PokemonType[]
+
   @@map("pokemon")
 }
 
 model PokemonType {
-  id        String @id @default(cuid())
+  id        String  @id @default(cuid())
   type      String
   pokemonId String
   pokemon   Pokemon @relation(fields: [pokemonId], references: [id], onDelete: Cascade)
-  
+
   @@map("pokemon_types")
 }
 
@@ -53,22 +43,20 @@ model User {
   name      String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  
-  // Relations
   cart      Cart?
   orders    Order[]
-  
+
   @@map("users")
 }
 
 model Cart {
   id        String     @id @default(cuid())
   userId    String     @unique
-  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-  items     CartItem[]
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
-  
+  items     CartItem[]
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   @@map("carts")
 }
 
@@ -79,11 +67,9 @@ model CartItem {
   quantity  Int      @default(1)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  
-  // Relations
-  cart      Cart    @relation(fields: [cartId], references: [id], onDelete: Cascade)
-  pokemon   Pokemon @relation(fields: [pokemonId], references: [id], onDelete: Cascade)
-  
+  cart      Cart     @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  pokemon   Pokemon  @relation(fields: [pokemonId], references: [id], onDelete: Cascade)
+
   @@unique([cartId, pokemonId])
   @@map("cart_items")
 }
@@ -95,11 +81,9 @@ model Order {
   total     Float
   createdAt DateTime    @default(now())
   updatedAt DateTime    @updatedAt
-  
-  // Relations
-  user      User        @relation(fields: [userId], references: [id], onDelete: Cascade)
   items     OrderItem[]
-  
+  user      User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   @@map("orders")
 }
 
@@ -110,11 +94,9 @@ model OrderItem {
   quantity  Int
   price     Float
   createdAt DateTime @default(now())
-  
-  // Relations
-  order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  pokemon   Pokemon @relation(fields: [pokemonId], references: [id], onDelete: Cascade)
-  
+  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  pokemon   Pokemon  @relation(fields: [pokemonId], references: [id], onDelete: Cascade)
+
   @@map("order_items")
 }
 

@@ -75,3 +75,46 @@ export async function POST(request: Request) {
     );
   }
 }
+
+export async function PUT(request: Request) {
+  try {
+    const body = await request.json();
+    const { id, name, image, price, description, inStock, featured, hp, attack, defense, speed, types } = body;
+
+    // First, delete existing types
+    await prisma.pokemonType.deleteMany({
+      where: { pokemonId: id },
+    });
+
+    // Then update the pokemon with new data
+    const pokemon = await prisma.pokemon.update({
+      where: { id },
+      data: {
+        name,
+        image,
+        price,
+        description,
+        inStock,
+        featured,
+        hp,
+        attack,
+        defense,
+        speed,
+        types: {
+          create: types.map((type: string) => ({ type })),
+        },
+      },
+      include: {
+        types: true,
+      },
+    });
+
+    return NextResponse.json(pokemon);
+  } catch (error) {
+    console.error('Error updating Pokemon:', error);
+    return NextResponse.json(
+      { error: 'Failed to update Pokemon' },
+      { status: 500 }
+    );
+  }
+}

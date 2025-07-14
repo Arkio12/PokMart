@@ -25,19 +25,18 @@ export function PokemonProvider({ children }: { children: ReactNode }) {
     // Load initial pokemon data
     const loadPokemon = async () => {
       try {
-        // Try to load from localStorage first
-        const storedPokemon = localStorage.getItem('pokemonData');
-        if (storedPokemon) {
-          setPokemon(JSON.parse(storedPokemon));
+        // Try to load from API first
+        const response = await fetch('/api/pokemon');
+        if (response.ok) {
+          const data = await response.json();
+          setPokemon(data);
         } else {
-          // Fallback to mock data
+          // Fallback to mock data if API fails
           setPokemon(mockPokemon);
-          // Save initial data to localStorage
-          localStorage.setItem('pokemonData', JSON.stringify(mockPokemon));
         }
       } catch (error) {
         console.error('Error loading pokemon:', error);
-        // Fallback to mock data if localStorage fails
+        // Fallback to mock data if API fails
         setPokemon(mockPokemon);
       } finally {
         setLoading(false);
@@ -47,12 +46,6 @@ export function PokemonProvider({ children }: { children: ReactNode }) {
     loadPokemon();
   }, []);
 
-  // Save pokemon data to localStorage whenever it changes
-  useEffect(() => {
-    if (!loading) {
-      localStorage.setItem('pokemonData', JSON.stringify(pokemon));
-    }
-  }, [pokemon, loading]);
 
   const addPokemon = (newPokemon: Omit<Pokemon, 'id'>) => {
     const maxId = Math.max(...pokemon.map(p => parseInt(p.id)), 0);
@@ -70,10 +63,50 @@ export function PokemonProvider({ children }: { children: ReactNode }) {
     );
   };
 
-  const toggleStock = (id: string) => {
+  const toggleStock = async (id: string) => {
+    // Find the pokemon to get its current state
+    const pokemonToUpdate = pokemon.find(p => p.id === id);
+    if (!pokemonToUpdate) return;
+
+    const newInStockValue = !pokemonToUpdate.inStock;
+
+    // Update locally first for immediate UI feedback
     setPokemon(prev => 
-      prev.map(p => p.id === id ? { ...p, inStock: !p.inStock } : p)
+      prev.map(p => p.id === id ? { ...p, inStock: newInStockValue } : p)
     );
+
+    try {
+      // Persist to database using the individual Pokemon endpoint
+      const response = await fetch(`/api/pokemon/${id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          inStock: newInStockValue,
+        }),
+      });
+
+      if (!response.ok) {
+        // If API call fails, revert the local state
+        setPokemon(prev => 
+          prev.map(p => p.id === id ? { ...p, inStock: pokemonToUpdate.inStock } : p)
+        );
+        console.error('Failed to update stock status');
+      } else {
+        // Optional: Update with the response data to ensure consistency
+        const updatedPokemon = await response.json();
+        setPokemon(prev => 
+          prev.map(p => p.id === id ? updatedPokemon : p)
+        );
+      }
+    } catch (error) {
+      // If API call fails, revert the local state
+      setPokemon(prev => 
+        prev.map(p => p.id === id ? { ...p, inStock: pokemonToUpdate.inStock } : p)
+      );
+      console.error('Error updating stock status:', error);
+    }
   };
 
   const deletePokemon = (id: string) => {
@@ -82,7 +115,6 @@ export function PokemonProvider({ children }: { children: ReactNode }) {
 
   const resetToDefaults = () => {
     setPokemon(mockPokemon);
-    localStorage.setItem('pokemonData', JSON.stringify(mockPokemon));
   };
 
   const featuredPokemon = pokemon.filter(p => p.featured);
