@@ -4,7 +4,7 @@ import { Pokemon } from '@/types';
 // Fallback to mock data if database is not available
 const mockPokemon: Pokemon[] = [
   {
-    id: 1,
+    id: '1',
     name: 'Pikachu',
     image: '/api/placeholder/200/200',
     price: 150.00,
@@ -16,7 +16,7 @@ const mockPokemon: Pokemon[] = [
     stats: { hp: 35, attack: 55, defense: 40, speed: 90 }
   },
   {
-    id: 2,
+    id: '2',
     name: 'Charizard',
     image: '/api/placeholder/200/200',
     price: 300.00,
@@ -28,7 +28,7 @@ const mockPokemon: Pokemon[] = [
     stats: { hp: 78, attack: 84, defense: 78, speed: 100 }
   },
   {
-    id: 3,
+    id: '3',
     name: 'Blastoise',
     image: '/api/placeholder/200/200',
     price: 280.00,
@@ -40,7 +40,7 @@ const mockPokemon: Pokemon[] = [
     stats: { hp: 79, attack: 83, defense: 100, speed: 78 }
   },
   {
-    id: 4,
+    id: '4',
     name: 'Venusaur',
     image: '/api/placeholder/200/200',
     price: 260.00,
@@ -52,7 +52,7 @@ const mockPokemon: Pokemon[] = [
     stats: { hp: 80, attack: 82, defense: 83, speed: 80 }
   },
   {
-    id: 5,
+    id: '5',
     name: 'Gengar',
     image: '/api/placeholder/200/200',
     price: 220.00,
@@ -64,7 +64,7 @@ const mockPokemon: Pokemon[] = [
     stats: { hp: 60, attack: 65, defense: 60, speed: 110 }
   },
   {
-    id: 6,
+    id: '6',
     name: 'Alakazam',
     image: '/api/placeholder/200/200',
     price: 250.00,
@@ -76,7 +76,7 @@ const mockPokemon: Pokemon[] = [
     stats: { hp: 55, attack: 50, defense: 45, speed: 120 }
   },
   {
-    id: 7,
+    id: '7',
     name: 'Machamp',
     image: '/api/placeholder/200/200',
     price: 240.00,
@@ -88,7 +88,7 @@ const mockPokemon: Pokemon[] = [
     stats: { hp: 90, attack: 130, defense: 80, speed: 55 }
   },
   {
-    id: 8,
+    id: '8',
     name: 'Dragonite',
     image: '/api/placeholder/200/200',
     price: 350.00,
