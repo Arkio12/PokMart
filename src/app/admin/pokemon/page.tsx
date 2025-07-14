@@ -32,7 +32,7 @@ export default function AdminPokemonPage() {
       setTimeout(() => {
         setPokemon([
           {
-            id: 1,
+            id: "1",
             name: "Pikachu",
             image: "/api/placeholder/150/150",
             price: 49.99,
@@ -44,7 +44,7 @@ export default function AdminPokemonPage() {
             featured: true
           },
           {
-            id: 2,
+            id: "2",
             name: "Charizard",
             image: "/api/placeholder/150/150",
             price: 99.99,
@@ -56,7 +56,7 @@ export default function AdminPokemonPage() {
             featured: true
           },
           {
-            id: 3,
+            id: "3",
             name: "Blastoise",
             image: "/api/placeholder/150/150",
             price: 89.99,
@@ -94,19 +94,19 @@ export default function AdminPokemonPage() {
     }
   });
 
-  const handleDelete = (id: number) => {
+  const handleDelete = (id: string) => {
     if (confirm("Are you sure you want to delete this Pokemon?")) {
       setPokemon(pokemon.filter(p => p.id !== id));
     }
   };
 
-  const handleToggleStock = (id: number) => {
+  const handleToggleStock = (id: string) => {
     setPokemon(pokemon.map(p => 
       p.id === id ? { ...p, inStock: !p.inStock } : p
     ));
   };
 
-  const handleToggleFeatured = (id: number) => {
+  const handleToggleFeatured = (id: string) => {
     setPokemon(pokemon.map(p => 
       p.id === id ? { ...p, featured: !p.featured } : p
     ));

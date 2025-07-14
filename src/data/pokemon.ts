@@ -2,7 +2,7 @@ import { Pokemon } from '@/types';
 
 export const mockPokemon: Pokemon[] = [
   {
-    id: 1,
+    id: '1',
     name: 'Pikachu',
     image: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/25.png',
     price: 199.99,
@@ -14,7 +14,7 @@ export const mockPokemon: Pokemon[] = [
     featured: true,
   },
   {
-    id: 2,
+    id: '2',
     name: 'Charizard',
     image: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/6.png',
     price: 299.99,
@@ -26,7 +26,7 @@ export const mockPokemon: Pokemon[] = [
     featured: true,
   },
   {
-    id: 3,
+    id: '3',
     name: 'Blastoise',
     image: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/9.png',
     price: 289.99,
@@ -38,7 +38,7 @@ export const mockPokemon: Pokemon[] = [
     featured: true,
   },
   {
-    id: 4,
+    id: '4',
     name: 'Venusaur',
     image: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/3.png',
     price: 279.99,
@@ -50,7 +50,7 @@ export const mockPokemon: Pokemon[] = [
     featured: false,
   },
   {
-    id: 5,
+    id: '5',
     name: 'Mewtwo',
     image: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/150.png',
     price: 599.99,
@@ -62,7 +62,7 @@ export const mockPokemon: Pokemon[] = [
     featured: true,
   },
   {
-    id: 6,
+    id: '6',
     name: 'Mew',
     image: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/151.png',
     price: 499.99,
@@ -74,7 +74,7 @@ export const mockPokemon: Pokemon[] = [
     featured: true,
   },
   {
-    id: 7,
+    id: '7',
     name: 'Dragonite',
     image: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/149.png',
     price: 399.99,
@@ -86,7 +86,7 @@ export const mockPokemon: Pokemon[] = [
     featured: false,
   },
   {
-    id: 8,
+    id: '8',
     name: 'Gyarados',
     image: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/130.png',
     price: 349.99,
