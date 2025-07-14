@@ -1,8 +1,14 @@
 @import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Orbitron:wght@400;700;900&family=VT323:wght@400&display=swap');
 
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  --pokemon-red: #dc2626;
+  --pokemon-blue: #2563eb;
+  --pokemon-yellow: #eab308;
+  --pokemon-green: #16a34a;
+  --pokemon-purple: #9333ea;
 }
 
 @theme inline {
@@ -22,5 +28,101 @@
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: 'VT323', 'Press Start 2P', monospace;
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  /* Pokemon-themed pixelated fonts */
+  .font-pokemon {
+    font-family: 'Press Start 2P', monospace;
+    font-weight: 400;
+    letter-spacing: 0.1em;
+    image-rendering: pixelated;
+    image-rendering: -moz-crisp-edges;
+    image-rendering: crisp-edges;
+  }
+
+  .font-pokemon-title {
+    font-family: 'Press Start 2P', monospace;
+    font-weight: 400;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    image-rendering: pixelated;
+    image-rendering: -moz-crisp-edges;
+    image-rendering: crisp-edges;
+  }
+
+  .font-pokemon-body {
+    font-family: 'VT323', monospace;
+    font-weight: 400;
+    letter-spacing: 0.05em;
+    font-size: 1.1em;
+    image-rendering: pixelated;
+    image-rendering: -moz-crisp-edges;
+    image-rendering: crisp-edges;
+  }
+
+  /* Pokemon-themed gradients */
+  .gradient-pokeball {
+    background: linear-gradient(135deg, #ef4444 0%, #ffffff 50%, #ffffff 50%, #374151 100%);
+  }
+
+  .gradient-electric {
+    background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+  }
+
+  .gradient-fire {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  }
+
+  .gradient-water {
+    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+  }
+
+  .gradient-grass {
+    background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+  }
+
+  .gradient-psychic {
+    background: linear-gradient(135deg, #a855f7 0%, #7c3aed 100%);
+  }
+
+  /* Pokemon card hover effects */
+  .pokemon-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    transition: all 0.3s ease;
+  }
+
+  /* Pokeball loading animation */
+  @keyframes pokeball-spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+
+  .pokeball-loading {
+    animation: pokeball-spin 1s linear infinite;
+  }
+
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: #f1f5f9;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 4px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+  }
 }
