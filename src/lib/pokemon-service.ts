@@ -112,9 +112,9 @@ export class PokemonService {
       const pokemon = await prisma.pokemon.findMany({
         where: {
           OR: [
-            { name: { contains: query, mode: 'insensitive' } },
-            { description: { contains: query, mode: 'insensitive' } },
-            { types: { some: { type: { contains: query, mode: 'insensitive' } } } },
+            { name: { contains: query } },
+            { description: { contains: query } },
+            { types: { some: { type: { contains: query } } } },
           ],
         },
         include: {
@@ -154,7 +154,7 @@ export class PokemonService {
         where: {
           types: {
             some: {
-              type: { equals: type, mode: 'insensitive' },
+              type: { equals: type },
             },
           },
         },
