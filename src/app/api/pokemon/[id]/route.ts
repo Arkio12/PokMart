@@ -130,7 +130,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
   } catch (error) {
     console.error('Error updating Pokemon:', error);
     return NextResponse.json(
-      { error: 'Failed to update Pokemon', details: error.message },
+      { error: 'Failed to update Pokemon', details: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }
     );
   }
