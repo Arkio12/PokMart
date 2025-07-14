@@ -7,9 +7,9 @@ import { mockPokemon } from '@/data/pokemon';
 interface PokemonContextType {
   pokemon: Pokemon[];
   addPokemon: (newPokemon: Omit<Pokemon, 'id'>) => void;
-  updatePokemon: (id: number, updatedPokemon: Partial<Pokemon>) => void;
-  deletePokemon: (id: number) => void;
-  toggleStock: (id: number) => void;
+  updatePokemon: (id: string, updatedPokemon: Partial<Pokemon>) => void;
+  deletePokemon: (id: string) => void;
+  toggleStock: (id: string) => void;
   featuredPokemon: Pokemon[];
   loading: boolean;
 }
@@ -37,28 +37,28 @@ export function PokemonProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const addPokemon = (newPokemon: Omit<Pokemon, 'id'>) => {
-    const maxId = Math.max(...pokemon.map(p => p.id), 0);
+    const maxId = Math.max(...pokemon.map(p => parseInt(p.id)), 0);
     const pokemonWithId: Pokemon = {
       ...newPokemon,
-      id: maxId + 1
+      id: (maxId + 1).toString()
     };
     
     setPokemon(prev => [...prev, pokemonWithId]);
   };
 
-  const updatePokemon = (id: number, updatedPokemon: Partial<Pokemon>) => {
+  const updatePokemon = (id: string, updatedPokemon: Partial<Pokemon>) => {
     setPokemon(prev => 
       prev.map(p => p.id === id ? { ...p, ...updatedPokemon } : p)
     );
   };
 
-  const toggleStock = (id: number) => {
+  const toggleStock = (id: string) => {
     setPokemon(prev => 
       prev.map(p => p.id === id ? { ...p, inStock: !p.inStock } : p)
     );
   };
 
-  const deletePokemon = (id: number) => {
+  const deletePokemon = (id: string) => {
     setPokemon(prev => prev.filter(p => p.id !== id));
   };
 
