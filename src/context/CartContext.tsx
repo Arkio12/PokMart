@@ -143,7 +143,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
             item.pokemon && 
             item.pokemon.id && 
             item.pokemon.name && 
-            item.pokemon.price && 
+            typeof item.pokemon.price === 'number' && 
+            typeof item.quantity === 'number' &&
             item.quantity > 0
           );
           console.log('✅ Valid cart items:', validItems.length);
