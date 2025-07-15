@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import { supabaseHelpers } from '@/lib/supabase';
 
 export async function POST(request: NextRequest) {
   try {
@@ -10,18 +10,14 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if user already exists
-    const existingUser = await prisma.user.findUnique({
-      where: { id },
-    });
+    const existingUser = await supabaseHelpers.getUserById(id);
 
     if (!existingUser) {
       // Create user in database
-      const user = await prisma.user.create({
-        data: {
-          id,
-          email,
-          name,
-        },
+      const user = await supabaseHelpers.createUser({
+        id,
+        email,
+        name,
       });
 
       return NextResponse.json({ user });
@@ -43,9 +39,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'User ID is required' }, { status: 400 });
     }
 
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-    });
+    const user = await supabaseHelpers.getUserById(userId);
 
     if (!user) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });

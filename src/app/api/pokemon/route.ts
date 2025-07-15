@@ -1,30 +1,23 @@
-import { prisma } from '@/lib/prisma';
+import { supabaseHelpers } from '@/lib/supabase';
 import { NextResponse } from 'next/server';
 
 export async function GET() {
   try {
     console.log('Fetching Pokemon from database...');
-    const pokemon = await prisma.pokemon.findMany({
-      include: {
-        types: true,
-      },
-      orderBy: {
-        createdAt: 'desc',
-      },
-    });
+    const pokemon = await supabaseHelpers.getAllPokemon();
 
     console.log(`Found ${pokemon.length} Pokemon in database`);
     
     // Transform the data to match your existing Pokemon interface
-    const transformedPokemon = pokemon.map((p) => ({
+    const transformedPokemon = pokemon.map((p: any) => ({
       id: p.id,
       name: p.name,
       image: p.image,
       price: p.price,
       description: p.description,
-      inStock: p.inStock,
+      inStock: p.in_stock,
       featured: p.featured,
-      type: p.types.map((t) => t.type),
+      type: p.types?.map((t: any) => t.type) || [],
       stats: {
         hp: p.hp,
         attack: p.attack,
@@ -49,25 +42,18 @@ export async function POST(request: Request) {
     const body = await request.json();
     const { name, image, price, description, inStock, featured, hp, attack, defense, speed, types } = body;
 
-    const pokemon = await prisma.pokemon.create({
-      data: {
-        name,
-        image,
-        price,
-        description,
-        inStock: inStock ?? true,
-        featured: featured ?? false,
-        hp,
-        attack,
-        defense,
-        speed,
-        types: {
-          create: types.map((type: string) => ({ type })),
-        },
-      },
-      include: {
-        types: true,
-      },
+    const pokemon = await supabaseHelpers.createPokemon({
+      name,
+      image,
+      price,
+      description,
+      inStock: inStock ?? true,
+      featured: featured ?? false,
+      hp,
+      attack,
+      defense,
+      speed,
+      types: types || [],
     });
 
     return NextResponse.json(pokemon);
@@ -85,32 +71,18 @@ export async function PUT(request: Request) {
     const body = await request.json();
     const { id, name, image, price, description, inStock, featured, hp, attack, defense, speed, types } = body;
 
-    // First, delete existing types
-    await prisma.pokemonType.deleteMany({
-      where: { pokemonId: id },
-    });
-
-    // Then update the pokemon with new data
-    const pokemon = await prisma.pokemon.update({
-      where: { id },
-      data: {
-        name,
-        image,
-        price,
-        description,
-        inStock,
-        featured,
-        hp,
-        attack,
-        defense,
-        speed,
-        types: {
-          create: types.map((type: string) => ({ type })),
-        },
-      },
-      include: {
-        types: true,
-      },
+    const pokemon = await supabaseHelpers.updatePokemon(id, {
+      name,
+      image,
+      price,
+      description,
+      inStock,
+      featured,
+      hp,
+      attack,
+      defense,
+      speed,
+      types: types || [],
     });
 
     return NextResponse.json(pokemon);
