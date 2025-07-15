@@ -3,7 +3,22 @@ import { CartItem } from '@/types';
 // Database operations for cart persistence
 export async function saveCartToDatabase(userId: string, items: CartItem[]): Promise<void> {
   try {
-    console.log('Saving cart to database:', { userId, itemCount: items.length, items });
+    console.log('Saving cart to database:', { userId, itemCount: items.length });
+    
+    // Validate items before sending
+    const validItems = items.filter(item => 
+      item.pokemon && 
+      item.pokemon.id && 
+      item.pokemon.name && 
+      typeof item.pokemon.price === 'number' && 
+      typeof item.quantity === 'number' &&
+      item.quantity > 0
+    );
+    
+    if (validItems.length !== items.length) {
+      console.warn('Some items were filtered out as invalid:', items.length - validItems.length);
+    }
+    
     const response = await fetch('/api/cart', {
       method: 'POST',
       headers: {
@@ -11,7 +26,7 @@ export async function saveCartToDatabase(userId: string, items: CartItem[]): Pro
       },
       body: JSON.stringify({
         userId,
-        items,
+        items: validItems,
       }),
     });
 

@@ -3,12 +3,18 @@ export interface Pokemon {
   name: string;
   image: string;
   price: number;
-  type: PokemonType[];
-  category: ProductCategory;
+  type?: PokemonType[];
+  category?: ProductCategory;
   description: string;
-  stats: PokemonStats;
+  // Individual stats to match database schema
+  hp: number;
+  attack: number;
+  defense: number;
+  speed: number;
   inStock: boolean;
   featured: boolean;
+  // Optional fields for backward compatibility
+  stats?: PokemonStats;
 }
 
 export interface PokemonStats {

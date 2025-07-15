@@ -1,14 +1,50 @@
 "use client";
 
 import { useCart } from '@/context/CartContext';
+import { useAuth } from '@/context/AuthContext';
 import { formatPrice, cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
-import { Minus, Plus, Trash2 } from 'lucide-react';
+import { Minus, Plus, Trash2, ShoppingCart } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { useState } from 'react';
 
 export default function Cart() {
   const { items, total, removeItem, updateQuantity, clearCart } = useCart();
+  const { user, isLoading: authLoading } = useAuth();
+  const [isProcessing, setIsProcessing] = useState(false);
+
+  // Show loading state while auth is loading
+  if (authLoading) {
+    return (
+      <div className="pt-16 min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin text-6xl mb-4">🔄</div>
+          <h2 className="text-2xl font-bold mb-4">Loading...</h2>
+          <p className="text-gray-600">Please wait while we load your cart</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show login prompt if user is not authenticated
+  if (!user) {
+    return (
+      <div className="pt-16 min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-6xl mb-4">🔒</div>
+          <h2 className="text-2xl font-bold mb-4">Please Login</h2>
+          <p className="text-gray-600 mb-6">You need to be logged in to view your cart</p>
+          <Link 
+            href="/" 
+            className="bg-blue-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors"
+          >
+            Go to Login
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   if (items.length === 0) {
     return (
@@ -143,8 +179,20 @@ export default function Cart() {
                 </div>
               </div>
 
-              <button className="w-full bg-blue-600 text-white py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors mb-3 cursor-pointer">
-                Proceed to Checkout
+              <button 
+                onClick={() => {
+                  setIsProcessing(true);
+                  // Simulate checkout process
+                  setTimeout(() => {
+                    alert(`Checkout successful! Order total: ${formatPrice(total)}`);
+                    clearCart();
+                    setIsProcessing(false);
+                  }, 2000);
+                }}
+                disabled={isProcessing}
+                className="w-full bg-blue-600 text-white py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors mb-3 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isProcessing ? 'Processing...' : 'Proceed to Checkout'}
               </button>
               
               <Link 

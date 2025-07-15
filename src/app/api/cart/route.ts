@@ -79,6 +79,21 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'User ID is required' }, { status: 400 });
     }
 
+    // Validate items array
+    if (items && !Array.isArray(items)) {
+      return NextResponse.json({ error: 'Items must be an array' }, { status: 400 });
+    }
+
+    // Validate each item
+    if (items) {
+      for (const item of items) {
+        if (!item.pokemon || !item.pokemon.id || !item.pokemon.name || typeof item.pokemon.price !== 'number' || typeof item.quantity !== 'number') {
+          console.error('Invalid item:', item);
+          return NextResponse.json({ error: 'Invalid item format' }, { status: 400 });
+        }
+      }
+    }
+
     // First ensure the user exists in database
     const user = await prisma.user.findUnique({
       where: { id: userId },
@@ -128,26 +143,26 @@ export async function POST(request: NextRequest) {
             name: pokemon.name,
             image: pokemon.image,
             price: pokemon.price,
-            description: pokemon.description,
-            inStock: pokemon.inStock,
-            featured: pokemon.featured,
-            hp: pokemon.hp,
-            attack: pokemon.attack,
-            defense: pokemon.defense,
-            speed: pokemon.speed,
+            description: pokemon.description || '',
+            inStock: pokemon.inStock ?? true,
+            featured: pokemon.featured ?? false,
+            hp: pokemon.hp ?? pokemon.stats?.hp ?? 100,
+            attack: pokemon.attack ?? pokemon.stats?.attack ?? 50,
+            defense: pokemon.defense ?? pokemon.stats?.defense ?? 50,
+            speed: pokemon.speed ?? pokemon.stats?.speed ?? 50,
           },
           create: {
             id: pokemon.id,
             name: pokemon.name,
             image: pokemon.image,
             price: pokemon.price,
-            description: pokemon.description,
-            inStock: pokemon.inStock,
-            featured: pokemon.featured,
-            hp: pokemon.hp,
-            attack: pokemon.attack,
-            defense: pokemon.defense,
-            speed: pokemon.speed,
+            description: pokemon.description || '',
+            inStock: pokemon.inStock ?? true,
+            featured: pokemon.featured ?? false,
+            hp: pokemon.hp ?? pokemon.stats?.hp ?? 100,
+            attack: pokemon.attack ?? pokemon.stats?.attack ?? 50,
+            defense: pokemon.defense ?? pokemon.stats?.defense ?? 50,
+            speed: pokemon.speed ?? pokemon.stats?.speed ?? 50,
           },
         });
       }

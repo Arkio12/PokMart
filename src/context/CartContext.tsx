@@ -138,11 +138,21 @@ export function CartProvider({ children }: { children: ReactNode }) {
       loadCartFromDatabase(user.id)
         .then(items => {
           console.log('✅ Successfully loaded cart items:', items.length, items);
-          dispatch({ type: 'LOAD_ITEMS', payload: items });
+          // Validate items before loading
+          const validItems = items.filter(item => 
+            item.pokemon && 
+            item.pokemon.id && 
+            item.pokemon.name && 
+            item.pokemon.price && 
+            item.quantity > 0
+          );
+          console.log('✅ Valid cart items:', validItems.length);
+          dispatch({ type: 'LOAD_ITEMS', payload: validItems });
         })
         .catch(error => {
           console.error('❌ Error loading cart:', error);
-          // Don't reset isCartLoaded on error - keep it true to prevent retries
+          // Reset isCartLoaded on error to allow retry
+          setIsCartLoaded(false);
         });
     } else if (!isLoading && !user) {
       // Clear cart when user logs out
