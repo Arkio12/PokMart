@@ -20,6 +20,7 @@ export interface Pokemon {
   speed: number;
   created_at?: string;
   updated_at?: string;
+  types?: { type: string }[];
 }
 
 export interface User {
