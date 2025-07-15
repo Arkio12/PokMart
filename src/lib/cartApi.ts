@@ -3,7 +3,7 @@ import { CartItem } from '@/types';
 // Database operations for cart persistence
 export async function saveCartToDatabase(userId: string, items: CartItem[]): Promise<void> {
   try {
-    console.log('Saving cart to database:', { userId, itemCount: items.length });
+    console.log('💾 Saving cart to database:', { userId, itemCount: items.length });
     
     // Validate items before sending
     const validItems = items.filter(item => 
@@ -16,7 +16,7 @@ export async function saveCartToDatabase(userId: string, items: CartItem[]): Pro
     );
     
     if (validItems.length !== items.length) {
-      console.warn('Some items were filtered out as invalid:', items.length - validItems.length);
+      console.warn('⚠️ Some items were filtered out as invalid:', items.length - validItems.length);
     }
     
     const response = await fetch('/api/cart', {
@@ -32,15 +32,16 @@ export async function saveCartToDatabase(userId: string, items: CartItem[]): Pro
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('Failed to save cart:', response.status, errorText);
+      console.error('❌ Failed to save cart:', response.status, errorText);
       throw new Error(`Failed to save cart: ${response.status} - ${errorText}`);
     }
     
     const result = await response.json();
-    console.log('Cart saved successfully:', result);
+    console.log('✅ Cart saved successfully to database:', result);
   } catch (error) {
-    console.error('Error saving cart to database:', error);
-    // Don't throw the error to prevent breaking the UI
+    console.error('❌ Error saving cart to database:', error);
+    // Re-throw the error so the calling code can handle it
+    throw error;
   }
 }
 
