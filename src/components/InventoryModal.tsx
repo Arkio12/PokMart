@@ -173,7 +173,7 @@ export function InventoryModal({ isOpen, onClose }: InventoryModalProps) {
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="flex flex-wrap gap-1">
-                            {item.type.slice(0, 2).map((type) => (
+                            {item.type?.slice(0, 2).map((type) => (
                               <span
                                 key={type}
                                 className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded-full"

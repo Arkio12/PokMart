@@ -86,7 +86,7 @@ export function AnalyticsModal({ isOpen, onClose }: AnalyticsModalProps) {
         // Generate type distribution
         const typeCount: { [key: string]: number } = {};
         pokemon.forEach(p => {
-          p.type.forEach(type => {
+          p.type?.forEach(type => {
             typeCount[type] = (typeCount[type] || 0) + 1;
           });
         });

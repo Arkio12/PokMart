@@ -11,7 +11,7 @@ export default function Shop() {
   
   const filteredPokemon = filter === 'all' 
     ? pokemon 
-    : pokemon.filter(pokemon => pokemon.type.includes(filter as any));
+    : pokemon.filter(pokemon => pokemon.type && pokemon.type.includes(filter as any));
 
   const types = ['all', 'fire', 'water', 'grass', 'electric', 'psychic', 'dragon', 'flying'];
 

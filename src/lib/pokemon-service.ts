@@ -23,6 +23,12 @@ export class PokemonService {
         featured: p.featured,
         type: p.types.map((t) => t.type) as any,
         category: 'pokemon' as const,
+        // Individual stats (required by Pokemon type)
+        hp: p.hp,
+        attack: p.attack,
+        defense: p.defense,
+        speed: p.speed,
+        // Stats object for backward compatibility
         stats: {
           hp: p.hp,
           attack: p.attack,
@@ -60,6 +66,12 @@ export class PokemonService {
         featured: p.featured,
         type: p.types.map((t) => t.type) as any,
         category: 'pokemon' as const,
+        // Individual stats (required by Pokemon type)
+        hp: p.hp,
+        attack: p.attack,
+        defense: p.defense,
+        speed: p.speed,
+        // Stats object for backward compatibility
         stats: {
           hp: p.hp,
           attack: p.attack,
@@ -94,6 +106,12 @@ export class PokemonService {
         featured: pokemon.featured,
         type: pokemon.types.map((t) => t.type) as any,
         category: 'pokemon' as const,
+        // Individual stats (required by Pokemon type)
+        hp: pokemon.hp,
+        attack: pokemon.attack,
+        defense: pokemon.defense,
+        speed: pokemon.speed,
+        // Stats object for backward compatibility
         stats: {
           hp: pokemon.hp,
           attack: pokemon.attack,
@@ -135,6 +153,12 @@ export class PokemonService {
         featured: p.featured,
         type: p.types.map((t) => t.type) as any,
         category: 'pokemon' as const,
+        // Individual stats (required by Pokemon type)
+        hp: p.hp,
+        attack: p.attack,
+        defense: p.defense,
+        speed: p.speed,
+        // Stats object for backward compatibility
         stats: {
           hp: p.hp,
           attack: p.attack,
@@ -176,6 +200,12 @@ export class PokemonService {
         featured: p.featured,
         type: p.types.map((t) => t.type) as any,
         category: 'pokemon' as const,
+        // Individual stats (required by Pokemon type)
+        hp: p.hp,
+        attack: p.attack,
+        defense: p.defense,
+        speed: p.speed,
+        // Stats object for backward compatibility
         stats: {
           hp: p.hp,
           attack: p.attack,

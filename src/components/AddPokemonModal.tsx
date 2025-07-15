@@ -65,6 +65,12 @@ export function AddPokemonModal({ isOpen, onClose, onAddPokemon }: AddPokemonMod
       description: formData.description.trim(),
       type: formData.type,
       category: 'pokemon',
+      // Individual stats (required by Pokemon type)
+      hp: parseInt(formData.stats.hp),
+      attack: parseInt(formData.stats.attack),
+      defense: parseInt(formData.stats.defense),
+      speed: parseInt(formData.stats.speed),
+      // Stats object for backward compatibility
       stats: {
         hp: parseInt(formData.stats.hp),
         attack: parseInt(formData.stats.attack),

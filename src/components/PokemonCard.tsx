@@ -72,12 +72,12 @@ export function PokemonCard({ pokemon }: PokemonCardProps) {
         <h3 className="text-xl font-bold text-gray-900 mb-2">{pokemon.name}</h3>
         
         <div className="flex flex-wrap gap-1 mb-3">
-          {pokemon.type.map((type) => (
+          {pokemon.type?.map((type) => (
             <span
               key={type}
               className={cn(
-                'px-2 py-1 rounded-full text-xs font-medium text-white',
-                typeColors[type]
+                "px-2 py-1 rounded-full text-xs font-medium",
+                typeColors[type] || "bg-gray-100 text-gray-700"
               )}
             >
               {type}
@@ -98,19 +98,19 @@ export function PokemonCard({ pokemon }: PokemonCardProps) {
         <div className="grid grid-cols-2 gap-2 mb-4 text-xs">
           <div className="bg-gray-100 rounded p-2">
             <div className="font-medium text-gray-600">HP</div>
-            <div className="font-bold">{pokemon.stats.hp}</div>
+            <div className="font-bold">{pokemon.stats?.hp || 0}</div>
           </div>
           <div className="bg-gray-100 rounded p-2">
             <div className="font-medium text-gray-600">Attack</div>
-            <div className="font-bold">{pokemon.stats.attack}</div>
+            <div className="font-bold">{pokemon.stats?.attack || 0}</div>
           </div>
           <div className="bg-gray-100 rounded p-2">
             <div className="font-medium text-gray-600">Defense</div>
-            <div className="font-bold">{pokemon.stats.defense}</div>
+            <div className="font-bold">{pokemon.stats?.defense || 0}</div>
           </div>
           <div className="bg-gray-100 rounded p-2">
             <div className="font-medium text-gray-600">Speed</div>
-            <div className="font-bold">{pokemon.stats.speed}</div>
+            <div className="font-bold">{pokemon.stats?.speed || 0}</div>
           </div>
         </div>
 

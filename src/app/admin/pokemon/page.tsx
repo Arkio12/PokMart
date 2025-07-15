@@ -89,7 +89,7 @@ export default function AdminPokemonPage() {
 
   const filteredPokemon = pokemon.filter(p => {
     const matchesSearch = p.name.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesType = filterType === "all" || p.type.includes(filterType as any);
+    const matchesType = filterType === "all" || (p.type && p.type.includes(filterType as any));
     return matchesSearch && matchesType;
   });
 
@@ -100,7 +100,7 @@ export default function AdminPokemonPage() {
       case "price":
         return a.price - b.price;
       case "type":
-        return a.type[0].localeCompare(b.type[0]);
+        return (a.type?.[0] || "").localeCompare(b.type?.[0] || "");
       default:
         return 0;
     }
@@ -239,7 +239,7 @@ export default function AdminPokemonPage() {
               </div>
 
               <div className="flex flex-wrap gap-1 mb-3">
-                {pokemon.type.map((type) => (
+                {pokemon.type?.map((type) => (
                   <span
                     key={type}
                     className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs capitalize"
@@ -257,10 +257,10 @@ export default function AdminPokemonPage() {
               <div className="mb-4">
                 <div className="text-xs text-gray-500 mb-1">Stats</div>
                 <div className="grid grid-cols-2 gap-2 text-xs">
-                  <div>HP: {pokemon.stats.hp}</div>
-                  <div>Attack: {pokemon.stats.attack}</div>
-                  <div>Defense: {pokemon.stats.defense}</div>
-                  <div>Speed: {pokemon.stats.speed}</div>
+                  <div>HP: {pokemon.stats?.hp}</div>
+                  <div>Attack: {pokemon.stats?.attack}</div>
+                  <div>Defense: {pokemon.stats?.defense}</div>
+                  <div>Speed: {pokemon.stats?.speed}</div>
                 </div>
               </div>
 
