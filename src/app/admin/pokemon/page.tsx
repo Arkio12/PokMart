@@ -39,6 +39,10 @@ export default function AdminPokemonPage() {
             type: ["electric"],
             category: "pokemon",
             description: "An Electric-type Pokémon",
+            hp: 35,
+            attack: 55,
+            defense: 40,
+            speed: 90,
             stats: { hp: 35, attack: 55, defense: 40, speed: 90 },
             inStock: true,
             featured: true
@@ -51,6 +55,10 @@ export default function AdminPokemonPage() {
             type: ["fire", "flying"],
             category: "pokemon",
             description: "A Fire/Flying-type Pokémon",
+            hp: 78,
+            attack: 84,
+            defense: 78,
+            speed: 100,
             stats: { hp: 78, attack: 84, defense: 78, speed: 100 },
             inStock: true,
             featured: true
@@ -63,6 +71,10 @@ export default function AdminPokemonPage() {
             type: ["water"],
             category: "pokemon",
             description: "A Water-type Pokémon",
+            hp: 79,
+            attack: 83,
+            defense: 100,
+            speed: 78,
             stats: { hp: 79, attack: 83, defense: 100, speed: 78 },
             inStock: false,
             featured: false

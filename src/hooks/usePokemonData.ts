@@ -13,6 +13,10 @@ const mockPokemon: Pokemon[] = [
     featured: true,
     type: ['electric'],
     category: 'pokemon',
+    hp: 35,
+    attack: 55,
+    defense: 40,
+    speed: 90,
     stats: { hp: 35, attack: 55, defense: 40, speed: 90 }
   },
   {
@@ -25,6 +29,10 @@ const mockPokemon: Pokemon[] = [
     featured: true,
     type: ['fire', 'flying'],
     category: 'pokemon',
+    hp: 78,
+    attack: 84,
+    defense: 78,
+    speed: 100,
     stats: { hp: 78, attack: 84, defense: 78, speed: 100 }
   },
   {
@@ -37,6 +45,10 @@ const mockPokemon: Pokemon[] = [
     featured: true,
     type: ['water'],
     category: 'pokemon',
+    hp: 79,
+    attack: 83,
+    defense: 100,
+    speed: 78,
     stats: { hp: 79, attack: 83, defense: 100, speed: 78 }
   },
   {
@@ -49,6 +61,10 @@ const mockPokemon: Pokemon[] = [
     featured: true,
     type: ['grass', 'poison'],
     category: 'pokemon',
+    hp: 80,
+    attack: 82,
+    defense: 83,
+    speed: 80,
     stats: { hp: 80, attack: 82, defense: 83, speed: 80 }
   },
   {
@@ -61,6 +77,10 @@ const mockPokemon: Pokemon[] = [
     featured: false,
     type: ['ghost', 'poison'],
     category: 'pokemon',
+    hp: 60,
+    attack: 65,
+    defense: 60,
+    speed: 110,
     stats: { hp: 60, attack: 65, defense: 60, speed: 110 }
   },
   {
@@ -73,6 +93,10 @@ const mockPokemon: Pokemon[] = [
     featured: false,
     type: ['psychic'],
     category: 'pokemon',
+    hp: 55,
+    attack: 50,
+    defense: 45,
+    speed: 120,
     stats: { hp: 55, attack: 50, defense: 45, speed: 120 }
   },
   {
@@ -85,6 +109,10 @@ const mockPokemon: Pokemon[] = [
     featured: false,
     type: ['fighting'],
     category: 'pokemon',
+    hp: 90,
+    attack: 130,
+    defense: 80,
+    speed: 55,
     stats: { hp: 90, attack: 130, defense: 80, speed: 55 }
   },
   {
@@ -97,6 +125,10 @@ const mockPokemon: Pokemon[] = [
     featured: true,
     type: ['dragon', 'flying'],
     category: 'pokemon',
+    hp: 91,
+    attack: 134,
+    defense: 95,
+    speed: 80,
     stats: { hp: 91, attack: 134, defense: 95, speed: 80 }
   }
 ];
