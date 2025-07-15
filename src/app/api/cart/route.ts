@@ -116,6 +116,42 @@ export async function POST(request: NextRequest) {
     // Add new cart items
     if (items && items.length > 0) {
       console.log('Adding new cart items:', items.length);
+      
+      // First, ensure all Pokemon exist in the database
+      for (const item of items) {
+        const pokemon = item.pokemon;
+        console.log('Checking/creating Pokemon:', pokemon.id, pokemon.name);
+        
+        await prisma.pokemon.upsert({
+          where: { id: pokemon.id },
+          update: {
+            name: pokemon.name,
+            image: pokemon.image,
+            price: pokemon.price,
+            description: pokemon.description,
+            inStock: pokemon.inStock,
+            featured: pokemon.featured,
+            hp: pokemon.hp,
+            attack: pokemon.attack,
+            defense: pokemon.defense,
+            speed: pokemon.speed,
+          },
+          create: {
+            id: pokemon.id,
+            name: pokemon.name,
+            image: pokemon.image,
+            price: pokemon.price,
+            description: pokemon.description,
+            inStock: pokemon.inStock,
+            featured: pokemon.featured,
+            hp: pokemon.hp,
+            attack: pokemon.attack,
+            defense: pokemon.defense,
+            speed: pokemon.speed,
+          },
+        });
+      }
+      
       const cartItemsData = items.map((item: any) => ({
         cartId: cart.id,
         pokemonId: item.pokemon.id,
