@@ -31,20 +31,29 @@ export async function saveCartToDatabase(userId: string, items: CartItem[]): Pro
 
 export async function loadCartFromDatabase(userId: string): Promise<CartItem[]> {
   try {
-    console.log('Loading cart from database for user:', userId);
-    const response = await fetch(`/api/cart?userId=${userId}`);
+    console.log('📥 Loading cart from database for user:', userId);
+    const url = `/api/cart?userId=${userId}`;
+    console.log('🔗 Fetching from URL:', url);
+    
+    const response = await fetch(url);
+    console.log('📡 Response status:', response.status, response.statusText);
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('Failed to load cart:', response.status, errorText);
+      console.error('❌ Failed to load cart:', response.status, errorText);
       throw new Error(`Failed to load cart: ${response.status}`);
     }
 
     const data = await response.json();
-    console.log('Cart data loaded:', data);
-    return data.items || [];
+    console.log('📦 Raw cart data received:', data);
+    console.log('📦 Cart items array:', data.items);
+    console.log('📦 Number of items:', data.items?.length || 0);
+    
+    const items = data.items || [];
+    console.log('✅ Returning cart items:', items);
+    return items;
   } catch (error) {
-    console.error('Error loading cart from database:', error);
+    console.error('❌ Error loading cart from database:', error);
     return [];
   }
 }

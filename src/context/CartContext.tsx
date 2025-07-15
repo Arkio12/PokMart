@@ -129,21 +129,24 @@ export function CartProvider({ children }: { children: ReactNode }) {
   
   // Load cart when user logs in
   useEffect(() => {
+    console.log('Cart loading effect:', { isLoading, user: !!user, isCartLoaded });
+    
     if (!isLoading && user && !isCartLoaded) {
-      console.log('Loading cart for user:', user.id);
+      console.log('🔄 Loading cart for user:', user.id);
+      setIsCartLoaded(true); // Set immediately to prevent multiple loads
+      
       loadCartFromDatabase(user.id)
         .then(items => {
-          console.log('Loaded cart items:', items);
+          console.log('✅ Successfully loaded cart items:', items.length, items);
           dispatch({ type: 'LOAD_ITEMS', payload: items });
-          setIsCartLoaded(true);
         })
         .catch(error => {
-          console.error('Error loading cart:', error);
-          setIsCartLoaded(true); // Set to true even on error to prevent infinite loading
+          console.error('❌ Error loading cart:', error);
+          // Don't reset isCartLoaded on error - keep it true to prevent retries
         });
     } else if (!isLoading && !user) {
       // Clear cart when user logs out
-      console.log('Clearing cart - user logged out');
+      console.log('🔄 Clearing cart - user logged out');
       dispatch({ type: 'CLEAR_CART' });
       setIsCartLoaded(false);
     }
