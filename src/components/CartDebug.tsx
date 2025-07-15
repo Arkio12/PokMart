@@ -8,7 +8,19 @@ import { loadCartFromDatabase, saveCartToDatabase } from '@/lib/cartApi';
 export function CartDebug() {
   const { user } = useAuth();
   const { items, total, itemCount } = useCart();
-  const [debugInfo, setDebugInfo] = useState<any>({});
+  const [debugInfo, setDebugInfo] = useState<{
+    userId?: string;
+    userName?: string;
+    cartItemsCount?: number;
+    cartTotal?: number;
+    cartItemCount?: number;
+    testLoadResult?: any[];
+    testLoadCount?: number;
+    testLoadError?: string;
+    testSaveResult?: string;
+    testSaveTime?: string;
+    testSaveError?: string;
+  }>({});
 
   useEffect(() => {
     if (user) {
@@ -39,7 +51,7 @@ export function CartDebug() {
       console.error('🧪 Test load error:', error);
       setDebugInfo(prev => ({
         ...prev,
-        testLoadError: error.message
+        testLoadError: error instanceof Error ? error.message : 'Unknown error'
       }));
     }
   };
@@ -60,7 +72,7 @@ export function CartDebug() {
       console.error('🧪 Test save error:', error);
       setDebugInfo(prev => ({
         ...prev,
-        testSaveError: error.message
+        testSaveError: error instanceof Error ? error.message : 'Unknown error'
       }));
     }
   };
