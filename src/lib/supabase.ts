@@ -89,15 +89,15 @@ export const supabaseHelpers = {
     speed: number;
     types: string[];
   }): Promise<Pokemon> {
-    const { types, ...pokemon } = pokemonData;
+    const { types, ...pokemonFields } = pokemonData;
     
     // Create pokemon first
     const { data: createdPokemon, error: pokemonError } = await supabase
       .from('pokemon')
       .insert({
-        ...pokemon,
-        in_stock: pokemon.inStock ?? true,
-        featured: pokemon.featured ?? false,
+        ...pokemonFields,
+        in_stock: pokemonFields.inStock ?? true,
+        featured: pokemonFields.featured ?? false,
       })
       .select()
       .single();
@@ -119,7 +119,9 @@ export const supabaseHelpers = {
     }
     
     // Return pokemon with types
-    return this.getPokemonById(createdPokemon.id);
+    const pokemonWithTypes = await this.getPokemonById(createdPokemon.id);
+    if (!pokemonWithTypes) throw new Error('Failed to retrieve created Pokemon');
+    return pokemonWithTypes;
   },
 
   async updatePokemon(id: string, pokemonData: {
@@ -135,14 +137,14 @@ export const supabaseHelpers = {
     speed?: number;
     types?: string[];
   }): Promise<Pokemon> {
-    const { types, ...pokemon } = pokemonData;
+    const { types, ...pokemonFields } = pokemonData;
     
     // Update pokemon
     const { error: pokemonError } = await supabase
       .from('pokemon')
       .update({
-        ...pokemon,
-        in_stock: pokemon.inStock,
+        ...pokemonFields,
+        in_stock: pokemonFields.inStock,
         updated_at: new Date().toISOString(),
       })
       .eq('id', id);
@@ -175,7 +177,9 @@ export const supabaseHelpers = {
     }
     
     // Return updated pokemon with types
-    return this.getPokemonById(id);
+    const updatedPokemon = await this.getPokemonById(id);
+    if (!updatedPokemon) throw new Error('Failed to retrieve updated Pokemon');
+    return updatedPokemon;
   },
 
   async deletePokemon(id: string): Promise<void> {
@@ -188,7 +192,7 @@ export const supabaseHelpers = {
   },
 
   // User operations
-  async createUser(user: Omit<User, 'id' | 'created_at' | 'updated_at'>): Promise<User> {
+  async createUser(user: Omit<User, 'created_at' | 'updated_at'>): Promise<User> {
     const { data, error } = await supabase
       .from('users')
       .insert([user])
@@ -306,9 +310,10 @@ export const supabaseHelpers = {
     }
   },
 
-  async updateCartItemQuantity(itemId: string, quantity: number): Promise<CartItem> {
+  async updateCartItemQuantity(itemId: string, quantity: number): Promise<CartItem | void> {
     if (quantity <= 0) {
-      return this.removeFromCart(itemId);
+      await this.removeFromCart(itemId);
+      return;
     }
 
     const { data, error } = await supabase
