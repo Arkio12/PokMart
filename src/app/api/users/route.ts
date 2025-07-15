@@ -9,21 +9,14 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
-    // Check if user already exists
-    const existingUser = await supabaseHelpers.getUserById(id);
+    // Create or get user
+    const user = await supabaseHelpers.createOrGetUser({
+      id,
+      email,
+      name,
+    });
 
-    if (!existingUser) {
-      // Create user in database
-      const user = await supabaseHelpers.createUser({
-        id,
-        email,
-        name,
-      });
-
-      return NextResponse.json({ user });
-    }
-
-    return NextResponse.json({ user: existingUser });
+    return NextResponse.json({ user });
   } catch (error) {
     console.error('Error creating/finding user:', error);
     return NextResponse.json({ error: 'Failed to create/find user' }, { status: 500 });

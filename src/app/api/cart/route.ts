@@ -13,15 +13,12 @@ export async function GET(request: NextRequest) {
     }
 
     // Ensure user exists
-    let user = await supabaseHelpers.getUserById(userId);
-    if (!user) {
-      console.log('User not found, creating user:', userId);
-      user = await supabaseHelpers.createUser({
-        id: userId,
-        email: `user-${userId}@temp.com`,
-        name: 'User',
-      });
-    }
+    console.log('Ensuring user exists:', userId);
+    const user = await supabaseHelpers.createOrGetUser({
+      id: userId,
+      email: `user-${userId}@temp.com`,
+      name: 'User',
+    });
 
     // Get cart items
     const cartItems = await supabaseHelpers.getCartItems(userId);

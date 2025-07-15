@@ -192,7 +192,7 @@ export const supabaseHelpers = {
   },
 
   // User operations
-  async createUser(user: Omit<User, 'created_at' | 'updated_at'>): Promise<User> {
+  async createUser(user: Omit<User, 'id' | 'created_at' | 'updated_at'>): Promise<User> {
     const { data, error } = await supabase
       .from('users')
       .insert([user])
@@ -217,6 +217,28 @@ export const supabaseHelpers = {
     return data;
   },
 
+  async createOrGetUser(userData: { id: string; email: string; name: string; }): Promise<User> {
+    // First check if user exists
+    const user = await this.getUserById(userData.id);
+    if (user) {
+      return user;
+    }
+    
+    // If not found, create with specific ID using upsert
+    const { data, error } = await supabase
+      .from('users')
+      .upsert({
+        id: userData.id,
+        email: userData.email,
+        name: userData.name,
+      })
+      .select()
+      .single();
+    
+    if (error) throw error;
+    return data;
+  },
+
   // Cart operations
   async getCartItems(userId: string): Promise<CartItemWithPokemon[]> {
     const { data, error } = await supabase
@@ -233,14 +255,11 @@ export const supabaseHelpers = {
 
   async saveCart(userId: string, items: any[]): Promise<void> {
     // First ensure the user exists
-    let user = await this.getUserById(userId);
-    if (!user) {
-      user = await this.createUser({
-        id: userId,
-        email: `user-${userId}@temp.com`,
-        name: 'User',
-      });
-    }
+    const user = await this.createOrGetUser({
+      id: userId,
+      email: `user-${userId}@temp.com`,
+      name: 'User',
+    });
 
     // Clear existing cart items
     await this.clearCart(userId);
