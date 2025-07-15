@@ -3,7 +3,7 @@ import { CartItem } from '@/types';
 // Database operations for cart persistence
 export async function saveCartToDatabase(userId: string, items: CartItem[]): Promise<void> {
   try {
-    console.log('Saving cart to database:', { userId, itemCount: items.length });
+    console.log('Saving cart to database:', { userId, itemCount: items.length, items });
     const response = await fetch('/api/cart', {
       method: 'POST',
       headers: {
@@ -18,11 +18,14 @@ export async function saveCartToDatabase(userId: string, items: CartItem[]): Pro
     if (!response.ok) {
       const errorText = await response.text();
       console.error('Failed to save cart:', response.status, errorText);
-      throw new Error(`Failed to save cart: ${response.status}`);
+      throw new Error(`Failed to save cart: ${response.status} - ${errorText}`);
     }
-    console.log('Cart saved successfully');
+    
+    const result = await response.json();
+    console.log('Cart saved successfully:', result);
   } catch (error) {
     console.error('Error saving cart to database:', error);
+    // Don't throw the error to prevent breaking the UI
   }
 }
 

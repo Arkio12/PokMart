@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useReducer, ReactNode, useEffect } from 'react';
+import React, { createContext, useContext, useReducer, ReactNode, useEffect, useState } from 'react';
 import { CartItem, Pokemon } from '@/types';
 import { generateId } from '@/lib/utils';
 import { useAuth } from './AuthContext';
@@ -124,29 +124,38 @@ const initialState: CartState = {
 
 export function CartProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(cartReducer, initialState);
-  const { user } = useAuth();
+  const { user, isLoading } = useAuth();
+  const [isCartLoaded, setIsCartLoaded] = useState(false);
   
+  // Load cart when user logs in
   useEffect(() => {
-    if (user) {
+    if (!isLoading && user && !isCartLoaded) {
       console.log('Loading cart for user:', user.id);
-      loadCartFromDatabase(user.id).then(items => {
-        console.log('Loaded cart items:', items);
-        dispatch({ type: 'LOAD_ITEMS', payload: items });
-      }).catch(error => {
-        console.error('Error loading cart:', error);
-      });
-    } else {
+      loadCartFromDatabase(user.id)
+        .then(items => {
+          console.log('Loaded cart items:', items);
+          dispatch({ type: 'LOAD_ITEMS', payload: items });
+          setIsCartLoaded(true);
+        })
+        .catch(error => {
+          console.error('Error loading cart:', error);
+          setIsCartLoaded(true); // Set to true even on error to prevent infinite loading
+        });
+    } else if (!isLoading && !user) {
       // Clear cart when user logs out
       console.log('Clearing cart - user logged out');
       dispatch({ type: 'CLEAR_CART' });
+      setIsCartLoaded(false);
     }
-  }, [user]);
+  }, [user, isLoading, isCartLoaded]);
 
+  // Save cart to database when items change (but only after initial load)
   useEffect(() => {
-    if (user) {
+    if (user && isCartLoaded) {
+      console.log('Saving cart to database for user:', user.id, 'Items:', state.items.length);
       saveCartToDatabase(user.id, state.items);
     }
-  }, [state.items, user]);
+  }, [state.items, user, isCartLoaded]);
 
   const addItem = (pokemon: Pokemon) => {
     if (!user) {
