@@ -1,4 +1,12 @@
 {
-  "buildCommand": "prisma generate && next build",
-  "installCommand": "npm install && npx prisma generate"
+  "buildcommand": "prisma generate && prisma migrate deploy && next build",
+  "installCommand": "npm install && npx prisma generate",
+  "env": {
+      "PRISMA_GENERATE_DATAPROXY": "true"
+  },
+  "functions": {
+      "app/api/**/*.js": {
+        "maxDuration": 30
+      }
+  }
 }
