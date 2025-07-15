@@ -40,6 +40,24 @@ NODE_ENV
 Value: production
 ```
 
+### Database Connection Fix:
+If you're getting "prisma://" protocol errors, you need to:
+
+1. **Use Regular PostgreSQL URL Format:**
+   ```
+   DATABASE_URL=postgresql://username:password@host:port/database
+   ```
+   
+2. **NOT the Prisma format:**
+   ```
+   DATABASE_URL=prisma://...
+   ```
+
+3. **For Vercel Postgres:**
+   - Go to Vercel Dashboard → Storage → Create Database
+   - Copy the "Connection String" (not the "Prisma URL")
+   - Use the regular PostgreSQL connection string
+
 ### Optional Variables:
 ```
 NEXT_PUBLIC_APP_URL
