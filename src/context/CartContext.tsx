@@ -1,8 +1,10 @@
 "use client";
 
-import React, { createContext, useContext, useReducer, ReactNode } from 'react';
+import React, { createContext, useContext, useReducer, ReactNode, useEffect } from 'react';
 import { CartItem, Pokemon } from '@/types';
 import { generateId } from '@/lib/utils';
+import { useAuth } from './AuthContext';
+import { saveCartToDatabase, loadCartFromDatabase } from '@/lib/cartApi';
 
 interface CartState {
   items: CartItem[];
@@ -14,7 +16,8 @@ type CartAction =
   | { type: 'ADD_ITEM'; payload: Pokemon }
   | { type: 'REMOVE_ITEM'; payload: string }
   | { type: 'UPDATE_QUANTITY'; payload: { id: string; quantity: number } }
-  | { type: 'CLEAR_CART' };
+  | { type: 'CLEAR_CART' }
+  | { type: 'LOAD_ITEMS'; payload: CartItem[] };
 
 interface CartContextType extends CartState {
   addItem: (pokemon: Pokemon) => void;
@@ -90,6 +93,16 @@ function cartReducer(state: CartState, action: CartAction): CartState {
         itemCount: 0,
       };
     
+    case 'LOAD_ITEMS': {
+      const items = action.payload;
+      return {
+        ...state,
+        items,
+        total: calculateTotal(items),
+        itemCount: calculateItemCount(items),
+      };
+    }
+    
     default:
       return state;
   }
@@ -111,20 +124,47 @@ const initialState: CartState = {
 
 export function CartProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(cartReducer, initialState);
+  const { user } = useAuth();
+  
+  useEffect(() => {
+    if (user) {
+      loadCartFromDatabase(user.id).then(items => {
+        dispatch({ type: 'LOAD_ITEMS', payload: items });
+      });
+    } else {
+      // Clear cart when user logs out
+      dispatch({ type: 'CLEAR_CART' });
+    }
+  }, [user]);
+
+  useEffect(() => {
+    if (user) {
+      saveCartToDatabase(user.id, state.items);
+    }
+  }, [state.items, user]);
 
   const addItem = (pokemon: Pokemon) => {
+    if (!user) {
+      alert('Please log in to add items to your cart');
+      return;
+    }
     dispatch({ type: 'ADD_ITEM', payload: pokemon });
   };
 
   const removeItem = (id: string) => {
+    if (!user) return;
     dispatch({ type: 'REMOVE_ITEM', payload: id });
   };
 
   const updateQuantity = (id: string, quantity: number) => {
+    if (!user) return;
     dispatch({ type: 'UPDATE_QUANTITY', payload: { id, quantity } });
   };
 
   const clearCart = () => {
+    if (user) {
+      saveCartToDatabase(user.id, []);
+    }
     dispatch({ type: 'CLEAR_CART' });
   };
 
