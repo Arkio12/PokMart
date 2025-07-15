@@ -5,7 +5,6 @@ import { Header } from "@/components/Header";
 import { CartProvider } from "@/context/CartContext";
 import { AuthProvider } from "@/context/AuthContext";
 import { PokemonProvider } from "@/context/PokemonContext";
-import { CartDebug } from "@/components/CartDebug";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -39,7 +38,6 @@ export default function RootLayout({
               <main className="min-h-screen">
                 {children}
               </main>
-              <CartDebug />
             </CartProvider>
           </PokemonProvider>
         </AuthProvider>

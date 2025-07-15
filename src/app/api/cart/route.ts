@@ -6,14 +6,11 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const userId = searchParams.get('userId');
 
-    console.log('GET /api/cart - userId:', userId);
-
     if (!userId) {
       return NextResponse.json({ error: 'User ID is required' }, { status: 400 });
     }
 
     // Ensure user exists
-    console.log('Ensuring user exists:', userId);
     const user = await supabaseHelpers.createOrGetUser({
       id: userId,
       email: `user-${userId}@temp.com`,
@@ -30,7 +27,6 @@ export async function GET(request: NextRequest) {
       quantity: item.quantity,
     }));
 
-    console.log('Returning cart items:', items.length);
     return NextResponse.json({ items });
   } catch (error) {
     console.error('Error fetching cart:', error);
@@ -41,8 +37,6 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const { userId, items } = await request.json();
-
-    console.log('POST /api/cart - userId:', userId, 'items:', items?.length);
 
     if (!userId) {
       return NextResponse.json({ error: 'User ID is required' }, { status: 400 });
@@ -66,7 +60,6 @@ export async function POST(request: NextRequest) {
     // Save cart using supabase helper
     await supabaseHelpers.saveCart(userId, items || []);
 
-    console.log('Cart saved successfully for user:', userId);
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error('Error saving cart:', error);

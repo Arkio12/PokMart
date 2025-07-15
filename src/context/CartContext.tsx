@@ -131,16 +131,13 @@ export function CartProvider({ children }: { children: ReactNode }) {
   // Initialize cart when auth state is ready
   useEffect(() => {
     if (!isLoading && !isInitialized) {
-      console.log('🔄 Initializing cart system');
       setIsInitialized(true);
       
       if (user) {
-        console.log('🔄 Loading cart for authenticated user:', user.id);
         setIsCartLoaded(false); // Reset to trigger loading
         
         loadCartFromDatabase(user.id)
           .then(items => {
-            console.log('✅ Successfully loaded cart items:', items.length, items);
             // Validate items before loading
             const validItems = items.filter(item => 
               item && 
@@ -151,28 +148,24 @@ export function CartProvider({ children }: { children: ReactNode }) {
               typeof item.quantity === 'number' &&
               item.quantity > 0
             );
-            console.log('✅ Valid cart items:', validItems.length);
             dispatch({ type: 'LOAD_ITEMS', payload: validItems });
             setIsCartLoaded(true);
           })
           .catch(error => {
-            console.error('❌ Error loading cart:', error);
             // Try to load from localStorage as fallback
             try {
               const localCart = localStorage.getItem(`cart_${user.id}`);
               if (localCart) {
                 const items = JSON.parse(localCart);
-                console.log('📦 Loaded cart from localStorage fallback:', items.length);
                 dispatch({ type: 'LOAD_ITEMS', payload: items });
               }
             } catch (e) {
-              console.error('❌ Error loading from localStorage:', e);
+              // Silent error handling
             }
             setIsCartLoaded(true);
           });
       } else {
         // Clear cart when no user
-        console.log('🔄 Clearing cart - no user');
         dispatch({ type: 'CLEAR_CART' });
         setIsCartLoaded(false);
       }
@@ -183,10 +176,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (isInitialized && !isLoading) {
       if (user && !isCartLoaded) {
-        console.log('🔄 User logged in, loading cart:', user.id);
         loadCartFromDatabase(user.id)
           .then(items => {
-            console.log('✅ Cart loaded after login:', items.length);
             const validItems = items.filter(item => 
               item && 
               item.pokemon && 
@@ -200,11 +191,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
             setIsCartLoaded(true);
           })
           .catch(error => {
-            console.error('❌ Error loading cart after login:', error);
             setIsCartLoaded(true);
           });
       } else if (!user && isCartLoaded) {
-        console.log('🔄 User logged out, clearing cart');
         dispatch({ type: 'CLEAR_CART' });
         setIsCartLoaded(false);
       }
@@ -214,17 +203,13 @@ export function CartProvider({ children }: { children: ReactNode }) {
   // Save cart to database and localStorage when items change
   useEffect(() => {
     if (user && isCartLoaded && isInitialized) {
-      console.log('💾 Saving cart to database for user:', user.id, 'Items:', state.items.length);
-      
       // Save to database
       saveCartToDatabase(user.id, state.items)
         .then(() => {
-          console.log('✅ Cart saved to database');
           // Also save to localStorage as backup
           localStorage.setItem(`cart_${user.id}`, JSON.stringify(state.items));
         })
         .catch(error => {
-          console.error('❌ Error saving cart to database:', error);
           // Still save to localStorage as fallback
           localStorage.setItem(`cart_${user.id}`, JSON.stringify(state.items));
         });
