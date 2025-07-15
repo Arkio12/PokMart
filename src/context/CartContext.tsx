@@ -128,11 +128,16 @@ export function CartProvider({ children }: { children: ReactNode }) {
   
   useEffect(() => {
     if (user) {
+      console.log('Loading cart for user:', user.id);
       loadCartFromDatabase(user.id).then(items => {
+        console.log('Loaded cart items:', items);
         dispatch({ type: 'LOAD_ITEMS', payload: items });
+      }).catch(error => {
+        console.error('Error loading cart:', error);
       });
     } else {
       // Clear cart when user logs out
+      console.log('Clearing cart - user logged out');
       dispatch({ type: 'CLEAR_CART' });
     }
   }, [user]);

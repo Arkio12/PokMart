@@ -183,7 +183,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Check if user is stored in localStorage
     const storedUser = localStorage.getItem('user');
     if (storedUser) {
-      setUser(JSON.parse(storedUser));
+      const user = JSON.parse(storedUser);
+      setUser(user);
+      
+      // Sync current user with database
+      fetch('/api/users', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          id: user.id,
+          email: user.email,
+          name: user.name,
+        }),
+      }).catch(error => {
+        console.error('Error syncing user with database:', error);
+      });
     }
     
     // Check if additional users are stored in localStorage
@@ -207,6 +223,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     if (foundUser) {
       const { password: _, ...userWithoutPassword } = foundUser;
+      
+      // Sync user with database
+      try {
+        await fetch('/api/users', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            id: userWithoutPassword.id,
+            email: userWithoutPassword.email,
+            name: userWithoutPassword.name,
+          }),
+        });
+      } catch (error) {
+        console.error('Error syncing user with database:', error);
+      }
+      
       setUser(userWithoutPassword);
       localStorage.setItem('user', JSON.stringify(userWithoutPassword));
       return true;
@@ -241,6 +275,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
 
     const newUserWithPassword = { ...newUser, password };
+    
+    // Sync new user with database
+    try {
+      await fetch('/api/users', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          id: newUser.id,
+          email: newUser.email,
+          name: newUser.name,
+        }),
+      });
+    } catch (error) {
+      console.error('Error syncing new user with database:', error);
+    }
     
     // Update users state
     setUsers(prevUsers => {
