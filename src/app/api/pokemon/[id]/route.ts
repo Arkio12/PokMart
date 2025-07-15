@@ -1,15 +1,10 @@
-import { prisma } from '@/lib/prisma';
+import { supabaseHelpers } from '@/lib/supabase';
 import { NextResponse } from 'next/server';
 
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
-    const pokemon = await prisma.pokemon.findUnique({
-      where: { id },
-      include: {
-        types: true,
-      },
-    });
+    const pokemon = await supabaseHelpers.getPokemonById(id);
 
     if (!pokemon) {
       return NextResponse.json(
@@ -27,7 +22,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
       description: pokemon.description,
       inStock: pokemon.inStock,
       featured: pokemon.featured,
-      type: pokemon.types.map((t) => t.type),
+      type: pokemon.types?.map((t: any) => t.type) || [],
       stats: {
         hp: pokemon.hp,
         attack: pokemon.attack,
@@ -55,9 +50,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
     console.log(`Updating Pokemon ${id} with data:`, { inStock, ...body });
 
     // First, check if the Pokemon exists
-    const existingPokemon = await prisma.pokemon.findUnique({
-      where: { id },
-    });
+    const existingPokemon = await supabaseHelpers.getPokemonById(id);
 
     if (!existingPokemon) {
       console.error(`Pokemon with id ${id} not found`);
@@ -65,13 +58,6 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
         { error: 'Pokemon not found' },
         { status: 404 }
       );
-    }
-
-    // First, delete existing types if types are being updated
-    if (types) {
-      await prisma.pokemonType.deleteMany({
-        where: { pokemonId: id },
-      });
     }
 
     // Build the update data object dynamically
@@ -87,24 +73,12 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
     if (attack !== undefined) updateData.attack = attack;
     if (defense !== undefined) updateData.defense = defense;
     if (speed !== undefined) updateData.speed = speed;
-
-    // Add types if provided
-    if (types) {
-      updateData.types = {
-        create: types.map((type: string) => ({ type })),
-      };
-    }
+    if (types !== undefined) updateData.types = types;
 
     console.log('Update data:', updateData);
 
-    // Update the pokemon
-    const pokemon = await prisma.pokemon.update({
-      where: { id },
-      data: updateData,
-      include: {
-        types: true,
-      },
-    });
+    // Update the pokemon using Supabase
+    const pokemon = await supabaseHelpers.updatePokemon(id, updateData);
 
     console.log('Pokemon updated successfully:', pokemon);
 
@@ -117,7 +91,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
       description: pokemon.description,
       inStock: pokemon.inStock,
       featured: pokemon.featured,
-      type: pokemon.types.map((t) => t.type),
+      type: pokemon.types?.map((t: any) => t.type) || [],
       stats: {
         hp: pokemon.hp,
         attack: pokemon.attack,
@@ -139,9 +113,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
 export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
-    await prisma.pokemon.delete({
-      where: { id },
-    });
+    await supabaseHelpers.deletePokemon(id);
 
     return NextResponse.json({ message: 'Pokemon deleted successfully' });
   } catch (error) {
