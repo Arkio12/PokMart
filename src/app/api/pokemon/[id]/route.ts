@@ -22,6 +22,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
       description: pokemon.description,
       inStock: pokemon.inStock,
       featured: pokemon.featured,
+      hidden: pokemon.hidden || false,
       type: pokemon.types?.map((t: any) => t.type) || [],
       stats: {
         hp: pokemon.hp,
@@ -45,9 +46,9 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
   try {
     const { id } = await params;
     const body = await request.json();
-    const { name, image, price, description, inStock, featured, hp, attack, defense, speed, types } = body;
+    const { name, image, price, description, inStock, featured, hidden, hp, attack, defense, speed, types } = body;
 
-    console.log(`Updating Pokemon ${id} with data:`, { inStock, ...body });
+    console.log(`Updating Pokemon ${id} with data:`, { inStock, hidden, ...body });
 
     // First, check if the Pokemon exists
     const existingPokemon = await supabaseHelpers.getPokemonById(id);
@@ -69,11 +70,17 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
     if (description !== undefined) updateData.description = description;
     if (inStock !== undefined) updateData.inStock = inStock;
     if (featured !== undefined) updateData.featured = featured;
+    if (hidden !== undefined) updateData.hidden = hidden;
     if (hp !== undefined) updateData.hp = hp;
     if (attack !== undefined) updateData.attack = attack;
     if (defense !== undefined) updateData.defense = defense;
     if (speed !== undefined) updateData.speed = speed;
     if (types !== undefined) updateData.types = types;
+    
+    // Handle stock_quantity field
+    if (body.stock_quantity !== undefined) {
+      updateData.stock_quantity = body.stock_quantity;
+    }
 
     console.log('Update data:', updateData);
 
@@ -91,6 +98,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
       description: pokemon.description,
       inStock: pokemon.inStock,
       featured: pokemon.featured,
+      hidden: pokemon.hidden || false,
       type: pokemon.types?.map((t: any) => t.type) || [],
       stats: {
         hp: pokemon.hp,

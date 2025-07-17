@@ -3,10 +3,16 @@
 import { PokemonCard } from '@/components/PokemonCard';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
+import { useEffect } from 'react';
 import { usePokemon } from '@/context/PokemonContext';
 
 export default function Home() {
-  const { featuredPokemon } = usePokemon();
+  const { featuredPokemon, refreshPokemon } = usePokemon();
+  
+  // Refresh Pokemon data when component mounts to ensure we have the latest data
+  useEffect(() => {
+    refreshPokemon();
+  }, [refreshPokemon]);
   
   return (
     <div className="pt-16"> {/* Account for fixed header */}
@@ -57,7 +63,7 @@ export default function Home() {
             Featured Pokemon ⭐
           </motion.h2>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 text-black">
             {featuredPokemon.map((pokemon, index) => (
               <motion.div
                 key={pokemon.id}

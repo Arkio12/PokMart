@@ -7,12 +7,17 @@ import {
   Edit, 
   Trash2, 
   Eye,
+  EyeOff,
   Filter,
   Download,
-  Upload
+  Upload,
+  RefreshCw,
+  Star,
+  StarOff,
+  X
 } from "lucide-react";
-import { motion } from "framer-motion";
-import { Pokemon } from "@/types";
+import { motion, AnimatePresence } from "framer-motion";
+import { Pokemon, PokemonType } from "@/types";
 
 interface PokemonWithActions extends Pokemon {
   actions?: any;
@@ -24,67 +29,73 @@ export default function AdminPokemonPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterType, setFilterType] = useState("all");
   const [sortBy, setSortBy] = useState("name");
+  
+  // Modal states
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [selectedPokemon, setSelectedPokemon] = useState<PokemonWithActions | null>(null);
+  const [editFormData, setEditFormData] = useState<Partial<Pokemon>>({});
 
-  // Mock data - replace with actual API call
+  // Fetch real data from API
+  const fetchPokemon = async () => {
+    try {
+      const response = await fetch('/api/pokemon');
+      if (!response.ok) {
+        throw new Error('Failed to fetch Pokemon');
+      }
+      const data = await response.json();
+      
+      // Transform the data to match expected format
+      const transformedPokemon = data.map((p: any) => ({
+        ...p,
+        // Ensure inStock is properly set based on stock_quantity
+        inStock: p.inStock && (p.stock_quantity || 0) > 0,
+        // Ensure hidden property is properly set
+        hidden: p.hidden || false,
+        type: p.types?.map((t: any) => t.type) || [],
+        stats: {
+          hp: p.hp,
+          attack: p.attack,
+          defense: p.defense,
+          speed: p.speed
+        }
+      }));
+      
+      // Debug: Log the first Pokemon to check data structure
+      if (transformedPokemon.length > 0) {
+        console.log('Sample Pokemon data:', transformedPokemon[0]);
+      }
+      
+      setPokemon(transformedPokemon);
+      setLoading(false);
+    } catch (error) {
+      console.error('Error fetching Pokemon:', error);
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchPokemon = async () => {
-      // Simulate API call
-      setTimeout(() => {
-        setPokemon([
-          {
-            id: "1",
-            name: "Pikachu",
-            image: "/api/placeholder/150/150",
-            price: 49.99,
-            type: ["electric"],
-            category: "pokemon",
-            description: "An Electric-type Pokémon",
-            hp: 35,
-            attack: 55,
-            defense: 40,
-            speed: 90,
-            stats: { hp: 35, attack: 55, defense: 40, speed: 90 },
-            inStock: true,
-            featured: true
-          },
-          {
-            id: "2",
-            name: "Charizard",
-            image: "/api/placeholder/150/150",
-            price: 99.99,
-            type: ["fire", "flying"],
-            category: "pokemon",
-            description: "A Fire/Flying-type Pokémon",
-            hp: 78,
-            attack: 84,
-            defense: 78,
-            speed: 100,
-            stats: { hp: 78, attack: 84, defense: 78, speed: 100 },
-            inStock: true,
-            featured: true
-          },
-          {
-            id: "3",
-            name: "Blastoise",
-            image: "/api/placeholder/150/150",
-            price: 89.99,
-            type: ["water"],
-            category: "pokemon",
-            description: "A Water-type Pokémon",
-            hp: 79,
-            attack: 83,
-            defense: 100,
-            speed: 78,
-            stats: { hp: 79, attack: 83, defense: 100, speed: 78 },
-            inStock: false,
-            featured: false
-          }
-        ]);
-        setLoading(false);
-      }, 1000);
-    };
-
     fetchPokemon();
+    
+    // Only auto-refresh every 30 seconds to avoid overwriting local changes
+    const interval = setInterval(fetchPokemon, 30000);
+    
+    return () => clearInterval(interval);
+  }, []);
+  
+  // Also refresh when the page becomes visible again
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        fetchPokemon();
+      }
+    };
+    
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
   }, []);
 
   const filteredPokemon = pokemon.filter(p => {
@@ -112,16 +123,186 @@ export default function AdminPokemonPage() {
     }
   };
 
-  const handleToggleStock = (id: string) => {
-    setPokemon(pokemon.map(p => 
-      p.id === id ? { ...p, inStock: !p.inStock } : p
-    ));
+  const handleToggleStock = async (id: string) => {
+    const pokemonToUpdate = pokemon.find(p => p.id === id);
+    if (!pokemonToUpdate) return;
+    
+    const newInStockStatus = !pokemonToUpdate.inStock;
+    
+    try {
+      const response = await fetch(`/api/pokemon/${id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          inStock: newInStockStatus
+        })
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to update stock status');
+      }
+      
+      // Update local state on successful API call
+      setPokemon(pokemon.map(p => 
+        p.id === id ? { ...p, inStock: newInStockStatus } : p
+      ));
+    } catch (error) {
+      console.error('Error updating stock status:', error);
+      alert('Failed to update stock status');
+    }
   };
 
-  const handleToggleFeatured = (id: string) => {
-    setPokemon(pokemon.map(p => 
-      p.id === id ? { ...p, featured: !p.featured } : p
-    ));
+  const handleToggleFeatured = async (id: string) => {
+    const pokemonToUpdate = pokemon.find(p => p.id === id);
+    if (!pokemonToUpdate) return;
+    
+    const newFeaturedStatus = !pokemonToUpdate.featured;
+    
+    try {
+      const response = await fetch(`/api/pokemon/${id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          featured: newFeaturedStatus
+        })
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to update featured status');
+      }
+      
+      // Update local state on successful API call
+      setPokemon(pokemon.map(p => 
+        p.id === id ? { ...p, featured: newFeaturedStatus } : p
+      ));
+    } catch (error) {
+      console.error('Error updating featured status:', error);
+      alert('Failed to update featured status');
+    }
+  };
+  
+  // Add a hidden property to Pokemon type and handle visibility
+  const handleToggleVisibility = async (id: string) => {
+    const pokemonToUpdate = pokemon.find(p => p.id === id);
+    if (!pokemonToUpdate) return;
+    
+    const newHiddenStatus = !(pokemonToUpdate as any).hidden;
+    
+    try {
+      const response = await fetch(`/api/pokemon/${id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          hidden: newHiddenStatus
+        })
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to update visibility status');
+      }
+      
+      // Update local state on successful API call
+      setPokemon(pokemon.map(p => 
+        p.id === id ? { ...p, hidden: newHiddenStatus } : p
+      ));
+    } catch (error) {
+      console.error('Error updating visibility status:', error);
+      alert('Failed to update visibility status');
+    }
+  };
+  
+  const handleDeleteClick = (pokemon: PokemonWithActions) => {
+    setSelectedPokemon(pokemon);
+    setShowDeleteModal(true);
+  };
+  
+  const handleConfirmDelete = async () => {
+    if (!selectedPokemon) return;
+    
+    try {
+      const response = await fetch(`/api/pokemon/${selectedPokemon.id}`, {
+        method: 'DELETE'
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to delete Pokemon');
+      }
+      
+      // Remove from local state on successful API call
+      setPokemon(pokemon.filter(p => p.id !== selectedPokemon.id));
+      setShowDeleteModal(false);
+      setSelectedPokemon(null);
+    } catch (error) {
+      console.error('Error deleting Pokemon:', error);
+      alert('Failed to delete Pokemon');
+    }
+  };
+  
+  const handleEditClick = (pokemon: PokemonWithActions) => {
+    setSelectedPokemon(pokemon);
+    setEditFormData({
+      name: pokemon.name,
+      price: pokemon.price,
+      description: pokemon.description,
+      hp: pokemon.hp,
+      attack: pokemon.attack,
+      defense: pokemon.defense,
+      speed: pokemon.speed,
+      stock_quantity: pokemon.stock_quantity,
+      type: pokemon.type
+    });
+    setShowEditModal(true);
+  };
+  
+  const handleSaveEdit = async () => {
+    if (!selectedPokemon) return;
+    
+    try {
+      const response = await fetch(`/api/pokemon/${selectedPokemon.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(editFormData)
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to update Pokemon');
+      }
+      
+      // Get the updated Pokemon data from the API response
+      const updatedPokemonData = await response.json();
+      
+      // Transform the API response to match the expected format
+      const transformedPokemon = {
+        ...updatedPokemonData,
+        hidden: updatedPokemonData.hidden || false,
+        type: updatedPokemonData.type || [],
+        stats: {
+          hp: updatedPokemonData.hp,
+          attack: updatedPokemonData.attack,
+          defense: updatedPokemonData.defense,
+          speed: updatedPokemonData.speed
+        }
+      };
+      
+      // Update local state with the transformed Pokemon object
+      setPokemon(pokemon.map(p => 
+        p.id === selectedPokemon.id ? transformedPokemon : p
+      ));
+      setShowEditModal(false);
+      setSelectedPokemon(null);
+      setEditFormData({});
+    } catch (error) {
+      console.error('Error updating Pokemon:', error);
+      alert('Failed to update Pokemon');
+    }
   };
 
   if (loading) {
@@ -138,6 +319,10 @@ export default function AdminPokemonPage() {
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold text-gray-900">Pokemon Management</h1>
         <div className="flex space-x-4">
+          <button className="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors flex items-center space-x-2" onClick={fetchPokemon}>
+            <RefreshCw size={16} />
+            <span>Refresh</span>
+          </button>
           <button className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors flex items-center space-x-2">
             <Upload size={16} />
             <span>Import</span>
@@ -162,7 +347,7 @@ export default function AdminPokemonPage() {
             <input
               type="text"
               placeholder="Search Pokemon..."
-              className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg w-full focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg w-full focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
@@ -170,7 +355,7 @@ export default function AdminPokemonPage() {
 
           {/* Type Filter */}
           <select
-            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black"
             value={filterType}
             onChange={(e) => setFilterType(e.target.value)}
           >
@@ -184,7 +369,7 @@ export default function AdminPokemonPage() {
 
           {/* Sort */}
           <select
-            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black"
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value)}
           >
@@ -237,6 +422,20 @@ export default function AdminPokemonPage() {
                 <h3 className="text-lg font-semibold text-gray-900">{pokemon.name}</h3>
                 <span className="text-lg font-bold text-green-600">${pokemon.price}</span>
               </div>
+              
+              {/* Stock Quantity */}
+              <div className="mb-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-gray-600">Stock:</span>
+                  <span className={`font-semibold ${
+                    (pokemon.stock_quantity || 0) > 0 
+                      ? 'text-green-600' 
+                      : 'text-red-600'
+                  }`}>
+                    {pokemon.stock_quantity || 0}
+                  </span>
+                </div>
+              </div>
 
               <div className="flex flex-wrap gap-1 mb-3">
                 {pokemon.type?.map((type) => (
@@ -255,7 +454,7 @@ export default function AdminPokemonPage() {
 
               {/* Stats Bar */}
               <div className="mb-4">
-                <div className="text-xs text-gray-500 mb-1">Stats</div>
+                <div className="text-xs text-black-500 mb-1">Stats</div>
                 <div className="grid grid-cols-2 gap-2 text-xs">
                   <div>HP: {pokemon.stats?.hp}</div>
                   <div>Attack: {pokemon.stats?.attack}</div>
@@ -290,15 +489,28 @@ export default function AdminPokemonPage() {
                 </div>
 
                 <div className="flex space-x-2">
-                  <button className="text-blue-600 hover:text-blue-800">
-                    <Eye size={16} />
+                  <button 
+                    onClick={() => handleToggleVisibility(pokemon.id)}
+                    className={`p-2 rounded-lg transition-colors ${
+                      (pokemon as any).hidden 
+                        ? 'text-gray-400 hover:text-gray-600 bg-gray-50'
+                        : 'text-blue-600 hover:text-blue-800 bg-blue-50'
+                    }`}
+                    title={(pokemon as any).hidden ? 'Show in shop' : 'Hide from shop'}
+                  >
+                    {(pokemon as any).hidden ? <EyeOff size={16} /> : <Eye size={16} />}
                   </button>
-                  <button className="text-green-600 hover:text-green-800">
+                  <button 
+                    onClick={() => handleEditClick(pokemon)}
+                    className="p-2 rounded-lg text-green-600 hover:text-green-800 bg-green-50 transition-colors"
+                    title="Edit Pokemon"
+                  >
                     <Edit size={16} />
                   </button>
                   <button 
-                    onClick={() => handleDelete(pokemon.id)}
-                    className="text-red-600 hover:text-red-800"
+                    onClick={() => handleDeleteClick(pokemon)}
+                    className="p-2 rounded-lg text-red-600 hover:text-red-800 bg-red-50 transition-colors"
+                    title="Delete Pokemon"
                   >
                     <Trash2 size={16} />
                   </button>
@@ -320,6 +532,208 @@ export default function AdminPokemonPage() {
           </button>
         </div>
       )}
+      
+      {/* Delete Confirmation Modal */}
+      <AnimatePresence>
+        {showDeleteModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+            onClick={() => setShowDeleteModal(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="bg-white rounded-lg p-6 max-w-md w-full mx-4"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-gray-900">Delete Pokemon</h3>
+                <button
+                  onClick={() => setShowDeleteModal(false)}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <X size={24} />
+                </button>
+              </div>
+              
+              <div className="mb-6">
+                <p className="text-gray-600 mb-4">
+                  Are you sure you want to delete <strong>{selectedPokemon?.name}</strong>? This action cannot be undone.
+                </p>
+                
+                {selectedPokemon && (
+                  <div className="flex items-center space-x-4 p-4 bg-gray-50 rounded-lg">
+                    <img
+                      src={selectedPokemon.image}
+                      alt={selectedPokemon.name}
+                      className="w-16 h-16 object-cover rounded-lg"
+                    />
+                    <div>
+                      <h4 className="font-medium text-gray-900">{selectedPokemon.name}</h4>
+                      <p className="text-sm text-gray-600">${selectedPokemon.price}</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+              
+              <div className="flex justify-end space-x-4">
+                <button
+                  onClick={() => setShowDeleteModal(false)}
+                  className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleConfirmDelete}
+                  className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+                >
+                  Delete Pokemon
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+      
+      {/* Edit Modal */}
+      <AnimatePresence>
+        {showEditModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+            onClick={() => setShowEditModal(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="bg-white rounded-lg p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-gray-900">Edit Pokemon</h3>
+                <button
+                  onClick={() => setShowEditModal(false)}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <X size={24} />
+                </button>
+              </div>
+              
+              <div className="space-y-4">
+                {/* Name */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
+                  <input
+                    type="text"
+                    value={editFormData.name || ''}
+                    onChange={(e) => setEditFormData({...editFormData, name: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black"
+                  />
+                </div>
+                
+                {/* Price */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Price</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={editFormData.price || ''}
+                    onChange={(e) => setEditFormData({...editFormData, price: parseFloat(e.target.value)})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black"
+                  />
+                </div>
+                
+                {/* Stock Quantity */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Stock Quantity</label>
+                  <input
+                    type="number"
+                    value={editFormData.stock_quantity || ''}
+                    onChange={(e) => setEditFormData({...editFormData, stock_quantity: parseInt(e.target.value)})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black"
+                  />
+                </div>
+                
+                {/* Description */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                  <textarea
+                    value={editFormData.description || ''}
+                    onChange={(e) => setEditFormData({...editFormData, description: e.target.value})}
+                    rows={3}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black"
+                  />
+                </div>
+                
+                {/* Stats */}
+                <div>
+                  <label className="block text-sm font-medium mb-2 text-black">Stats</label>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs mb-1 text-gray-600">HP</label>
+                      <input
+                        type="number"
+                        value={editFormData.hp || ''}
+                        onChange={(e) => setEditFormData({...editFormData, hp: parseInt(e.target.value)})}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs text-gray-600 mb-1">Attack</label>
+                      <input
+                        type="number"
+                        value={editFormData.attack || ''}
+                        onChange={(e) => setEditFormData({...editFormData, attack: parseInt(e.target.value)})}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs text-gray-600 mb-1">Defense</label>
+                      <input
+                        type="number"
+                        value={editFormData.defense || ''}
+                        onChange={(e) => setEditFormData({...editFormData, defense: parseInt(e.target.value)})}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs text-gray-600 mb-1">Speed</label>
+                      <input
+                        type="number"
+                        value={editFormData.speed || ''}
+                        onChange={(e) => setEditFormData({...editFormData, speed: parseInt(e.target.value)})}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="flex justify-end space-x-4 mt-6">
+                <button
+                  onClick={() => setShowEditModal(false)}
+                  className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleSaveEdit}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  Save Changes
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

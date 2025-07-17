@@ -15,8 +15,10 @@ export async function GET() {
       image: p.image,
       price: p.price,
       description: p.description,
-      inStock: p.in_stock,
+      inStock: p.inStock,
       featured: p.featured,
+      hidden: p.hidden || false,
+      stock_quantity: p.stock_quantity,
       type: p.types?.map((t: any) => t.type) || [],
       stats: {
         hp: p.hp,
@@ -69,7 +71,7 @@ export async function POST(request: Request) {
 export async function PUT(request: Request) {
   try {
     const body = await request.json();
-    const { id, name, image, price, description, inStock, featured, hp, attack, defense, speed, types } = body;
+    const { id, name, image, price, description, inStock, featured, hidden, hp, attack, defense, speed, types } = body;
 
     const pokemon = await supabaseHelpers.updatePokemon(id, {
       name,
@@ -78,6 +80,7 @@ export async function PUT(request: Request) {
       description,
       inStock,
       featured,
+      hidden,
       hp,
       attack,
       defense,

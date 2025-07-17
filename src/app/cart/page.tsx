@@ -13,6 +13,55 @@ export default function Cart() {
   const { items, total, removeItem, updateQuantity, clearCart } = useCart();
   const { user, isLoading: authLoading } = useAuth();
   const [isProcessing, setIsProcessing] = useState(false);
+  const [checkoutError, setCheckoutError] = useState<string | null>(null);
+  const [checkoutSuccess, setCheckoutSuccess] = useState(false);
+
+  const handleCheckout = async () => {
+    if (!user) {
+      alert('Please login to proceed with checkout');
+      return;
+    }
+
+    setIsProcessing(true);
+    setCheckoutError(null);
+
+    try {
+      const response = await fetch('/api/checkout', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId: user.id,
+          items: items,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        if (data.insufficientStock) {
+          setCheckoutError(`Insufficient stock for ${data.item}. Available: ${data.available}, Requested: ${data.requested}`);
+        } else {
+          setCheckoutError(data.error || 'Checkout failed');
+        }
+        return;
+      }
+
+      // Checkout successful
+      setCheckoutSuccess(true);
+      clearCart();
+      
+      // Show success message
+      alert(`Checkout successful! Order total: ${formatPrice(data.total)}\n\nStock updated for ${data.itemsUpdated} items.`);
+      
+    } catch (error) {
+      console.error('Checkout error:', error);
+      setCheckoutError('Network error. Please try again.');
+    } finally {
+      setIsProcessing(false);
+    }
+  };
 
   // Show loading state while auth is loading
   if (authLoading) {
@@ -179,16 +228,14 @@ export default function Cart() {
                 </div>
               </div>
 
+              {checkoutError && (
+                <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+                  <p className="text-sm">{checkoutError}</p>
+                </div>
+              )}
+              
               <button 
-                onClick={() => {
-                  setIsProcessing(true);
-                  // Simulate checkout process
-                  setTimeout(() => {
-                    alert(`Checkout successful! Order total: ${formatPrice(total)}`);
-                    clearCart();
-                    setIsProcessing(false);
-                  }, 2000);
-                }}
+                onClick={handleCheckout}
                 disabled={isProcessing}
                 className="w-full bg-blue-600 text-white py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors mb-3 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
               >

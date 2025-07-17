@@ -1,7 +1,11 @@
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://mkrsejfgwvbnhohvojzn.supabase.co';
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1rcnNlamZnd3ZibmhvaHZvanotbiIsInJvbGUiOiJhbm9uIiwiaWF0IjoxNzIxMDE3MjU5LCJleHAiOjIwMzY1OTMyNTl9.K4zUqN-3bvJ0cUZDqrFOJUXqWLfBjNaHDmQYQAGD7Y0';
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+if (!supabaseUrl || !supabaseAnonKey) {
+  throw new Error('Missing Supabase environment variables. Please check your .env.local file.');
+}
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
@@ -14,10 +18,12 @@ export interface Pokemon {
   description: string;
   inStock: boolean;
   featured: boolean;
+  hidden?: boolean;
   hp: number;
   attack: number;
   defense: number;
   speed: number;
+  stock_quantity?: number;
   created_at?: string;
   updated_at?: string;
   types?: { type: string }[];
@@ -42,6 +48,29 @@ export interface CartItem {
 
 export interface CartItemWithPokemon extends CartItem {
   pokemon: Pokemon;
+}
+
+export interface Order {
+  id: string;
+  user_id: string;
+  status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
+  total: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface OrderItem {
+  id: string;
+  order_id: string;
+  pokemon_id: string;
+  quantity: number;
+  price: number;
+  created_at: string;
+}
+
+export interface OrderWithDetails extends Order {
+  user: User;
+  items: (OrderItem & { pokemon: Pokemon })[];
 }
 
 // Helper functions for common operations
@@ -97,7 +126,7 @@ export const supabaseHelpers = {
       .from('pokemon')
       .insert({
         ...pokemonFields,
-        in_stock: pokemonFields.inStock ?? true,
+        inStock: pokemonFields.inStock ?? true,
         featured: pokemonFields.featured ?? false,
       })
       .select()
@@ -132,22 +161,34 @@ export const supabaseHelpers = {
     description?: string;
     inStock?: boolean;
     featured?: boolean;
+    hidden?: boolean;
     hp?: number;
     attack?: number;
     defense?: number;
     speed?: number;
+    stock_quantity?: number;
     types?: string[];
   }): Promise<Pokemon> {
     const { types, ...pokemonFields } = pokemonData;
     
+    // Prepare the update data
+    const updateData: any = {
+      ...pokemonFields,
+      updated_at: new Date().toISOString(),
+    };
+    
+    // If stock_quantity is provided, automatically determine inStock status
+    if (pokemonFields.stock_quantity !== undefined) {
+      updateData.inStock = pokemonFields.stock_quantity > 0;
+    } else if (pokemonFields.inStock !== undefined) {
+      // If only inStock is provided (without stock_quantity), use that value
+      updateData.inStock = pokemonFields.inStock;
+    }
+    
     // Update pokemon
     const { error: pokemonError } = await supabase
       .from('pokemon')
-      .update({
-        ...pokemonFields,
-        in_stock: pokemonFields.inStock,
-        updated_at: new Date().toISOString(),
-      })
+      .update(updateData)
       .eq('id', id);
     
     if (pokemonError) throw pokemonError;
@@ -279,7 +320,7 @@ export const supabaseHelpers = {
             image: pokemon.image,
             price: pokemon.price,
             description: pokemon.description || '',
-            in_stock: pokemon.inStock ?? true,
+            inStock: pokemon.inStock ?? true,
             featured: pokemon.featured ?? false,
             hp: pokemon.hp ?? pokemon.stats?.hp ?? 100,
             attack: pokemon.attack ?? pokemon.stats?.attack ?? 50,
@@ -363,5 +404,227 @@ export const supabaseHelpers = {
       .eq('user_id', userId);
     
     if (error) throw error;
+  },
+
+  // Order operations
+  async createOrder(orderData: {
+    userId: string;
+    items: any[];
+    total: number;
+    status?: string;
+  }): Promise<Order> {
+    const { userId, items, total, status = 'pending' } = orderData;
+
+    // First ensure the user exists
+    const user = await this.createOrGetUser({
+      id: userId,
+      email: `user-${userId}@temp.com`,
+      name: 'User',
+    });
+
+    // Create the order
+    const { data: order, error: orderError } = await supabase
+      .from('orders')
+      .insert({
+        user_id: userId,
+        status,
+        total,
+      })
+      .select()
+      .single();
+
+    if (orderError) throw orderError;
+
+    // Create order items
+    const orderItems = items.map(item => ({
+      order_id: order.id,
+      pokemon_id: item.pokemon.id,
+      quantity: item.quantity,
+      price: item.pokemon.price,
+    }));
+
+    const { error: itemsError } = await supabase
+      .from('order_items')
+      .insert(orderItems);
+
+    if (itemsError) throw itemsError;
+
+    return order;
+  },
+
+  async getAllOrders(): Promise<OrderWithDetails[]> {
+    const { data, error } = await supabase
+      .from('orders')
+      .select(`
+        *,
+        user:users(*),
+        items:order_items(
+          *,
+          pokemon:pokemon(*)
+        )
+      `)
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+    return data || [];
+  },
+
+  async getOrderById(id: string): Promise<OrderWithDetails | null> {
+    const { data, error } = await supabase
+      .from('orders')
+      .select(`
+        *,
+        user:users(*),
+        items:order_items(
+          *,
+          pokemon:pokemon(*)
+        )
+      `)
+      .eq('id', id)
+      .single();
+
+    if (error) {
+      if (error.code === 'PGRST116') return null;
+      throw error;
+    }
+    return data;
+  },
+
+  async getOrdersByUserId(userId: string): Promise<OrderWithDetails[]> {
+    const { data, error } = await supabase
+      .from('orders')
+      .select(`
+        *,
+        user:users(*),
+        items:order_items(
+          *,
+          pokemon:pokemon(*)
+        )
+      `)
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+    return data || [];
+  },
+
+  async updateOrderStatus(id: string, status: string): Promise<Order> {
+    const { data, error } = await supabase
+      .from('orders')
+      .update({ status, updated_at: new Date().toISOString() })
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
+  },
+
+  async getRecentOrders(limit: number = 50): Promise<OrderWithDetails[]> {
+    const { data, error } = await supabase
+      .from('orders')
+      .select(`
+        *,
+        user:users(*),
+        items:order_items(
+          *,
+          pokemon:pokemon(*)
+        )
+      `)
+      .order('created_at', { ascending: false })
+      .limit(limit);
+
+    if (error) throw error;
+    return data || [];
+  },
+
+  async getOrdersByStatus(status: string): Promise<OrderWithDetails[]> {
+    const { data, error } = await supabase
+      .from('orders')
+      .select(`
+        *,
+        user:users(*),
+        items:order_items(
+          *,
+          pokemon:pokemon(*)
+        )
+      `)
+      .eq('status', status)
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+    return data || [];
+  },
+
+  async getOrderStats(): Promise<{
+    totalOrders: number;
+    totalRevenue: number;
+    ordersByStatus: { [key: string]: number };
+  }> {
+    const { data: orders, error } = await supabase
+      .from('orders')
+      .select('status, total');
+
+    if (error) throw error;
+
+    const totalOrders = orders.length;
+    const totalRevenue = orders.reduce((sum, order) => sum + order.total, 0);
+    const ordersByStatus = orders.reduce((acc, order) => {
+      acc[order.status] = (acc[order.status] || 0) + 1;
+      return acc;
+    }, {} as { [key: string]: number });
+
+    return {
+      totalOrders,
+      totalRevenue,
+      ordersByStatus,
+    };
+  },
+
+  async getUsersWithRecentOrders(daysBack: number = 30): Promise<{
+    user: User;
+    orders: OrderWithDetails[];
+    totalSpent: number;
+  }[]> {
+    const cutoffDate = new Date();
+    cutoffDate.setDate(cutoffDate.getDate() - daysBack);
+
+    const { data: orders, error } = await supabase
+      .from('orders')
+      .select(`
+        *,
+        user:users(*),
+        items:order_items(
+          *,
+          pokemon:pokemon(*)
+        )
+      `)
+      .gte('created_at', cutoffDate.toISOString())
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+
+    // Group orders by user
+    const userOrdersMap = new Map<string, {
+      user: User;
+      orders: OrderWithDetails[];
+      totalSpent: number;
+    }>();
+
+    orders.forEach(order => {
+      if (!userOrdersMap.has(order.user_id)) {
+        userOrdersMap.set(order.user_id, {
+          user: order.user,
+          orders: [],
+          totalSpent: 0,
+        });
+      }
+
+      const userOrders = userOrdersMap.get(order.user_id)!;
+      userOrders.orders.push(order);
+      userOrders.totalSpent += order.total;
+    });
+
+    return Array.from(userOrdersMap.values());
   }
 };

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { 
@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { AdminRoute } from "@/components/AdminRoute";
+import { useAuth } from "@/context/AuthContext";
 
 const navigation = [
   { name: "Dashboard", href: "/admin", icon: LayoutDashboard },
@@ -33,6 +34,13 @@ export default function AdminLayout({
 }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const pathname = usePathname();
+  const { user } = useAuth();
+
+  // Close sidebar when clicking on navigation links (for mobile)
+  const handleNavClick = () => {
+    setSidebarOpen(false);
+  };
+
 
   return (
     <AdminRoute>
@@ -40,7 +48,8 @@ export default function AdminLayout({
       {/* Sidebar */}
       <div
         className={cn(
-          "fixed inset-y-0 left-0 z-50 w-64 bg-gray-900 transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0",
+          "fixed inset-y-0 left-0 z-50 w-64 bg-gray-900 transform transition-transform duration-300 ease-in-out",
+          "lg:translate-x-0 lg:static lg:inset-0",
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
         )}
       >
@@ -51,7 +60,7 @@ export default function AdminLayout({
           </Link>
           <button
             onClick={() => setSidebarOpen(false)}
-            className="lg:hidden text-white"
+            className="text-white lg:hidden"
           >
             <X size={24} />
           </button>
@@ -67,6 +76,7 @@ export default function AdminLayout({
                 <Link
                   key={item.name}
                   href={item.href}
+                  onClick={handleNavClick}
                   className={cn(
                     "flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors",
                     isActive
@@ -87,9 +97,9 @@ export default function AdminLayout({
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
               <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
-                <span className="text-white font-bold text-sm">A</span>
+                <span className="text-white font-bold text-sm">{user?.name?.[0]?.toUpperCase() || 'A'}</span>
               </div>
-              <span className="text-white text-sm">Admin User</span>
+              <span className="text-white text-sm">{user?.name || 'Admin User'}</span>
             </div>
             <button className="text-gray-400 hover:text-white">
               <LogOut size={20} />
@@ -105,16 +115,18 @@ export default function AdminLayout({
           <div className="flex items-center justify-between px-6 py-4">
             <button
               onClick={() => setSidebarOpen(true)}
-              className="lg:hidden text-gray-500 hover:text-gray-700"
+              className="lg:hidden p-2 rounded-lg text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
+              aria-label="Open sidebar menu"
             >
               <Menu size={24} />
             </button>
             <div className="flex items-center space-x-4">
               <Link
                 href="/"
-                className="text-sm text-gray-600 hover:text-gray-900"
+                className="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 active:bg-blue-800 rounded-lg shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200 border-b-4 border-blue-800 hover:border-blue-900 active:border-blue-800"
               >
-                View Store
+                <span className="mr-2">View</span>
+                Store
               </Link>
             </div>
           </div>
@@ -129,7 +141,7 @@ export default function AdminLayout({
       {/* Sidebar overlay */}
       {sidebarOpen && (
         <div
-          className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
+          className="fixed inset-0 bg-black bg-opacity-50 z-40"
           onClick={() => setSidebarOpen(false)}
         />
       )}

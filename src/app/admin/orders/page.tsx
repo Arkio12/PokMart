@@ -11,9 +11,12 @@ import {
   CheckCircle,
   Clock,
   AlertCircle,
-  Package
+  Package,
+  RefreshCw
 } from "lucide-react";
 import { motion } from "framer-motion";
+
+import { OrderWithDetails } from '@/lib/supabase';
 
 interface Order {
   id: string;
@@ -36,68 +39,56 @@ export default function AdminOrdersPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
   const [sortBy, setSortBy] = useState("newest");
+  const [lastFetch, setLastFetch] = useState(Date.now());
 
-  // Mock data - replace with actual API call
+  const fetchOrders = async () => {
+    try {
+      const response = await fetch('/api/orders?_t=' + Date.now()); // Cache busting
+      const { orders } = await response.json();
+
+      const formattedOrders = orders.map((order: OrderWithDetails) => ({
+        id: order.id,
+        customerName: order.user.name,
+        customerEmail: order.user.email,
+        total: order.total,
+        status: order.status,
+        items: order.items.map(item => ({
+          name: item.pokemon.name,
+          quantity: item.quantity,
+          price: item.price
+        })),
+        createdAt: order.created_at,
+        shippingAddress: '', // Add proper shipping address if available
+      }));
+
+      setOrders(formattedOrders);
+      setLoading(false);
+      setLastFetch(Date.now());
+    } catch (error) {
+      console.error('Error fetching orders:', error);
+      setLoading(false);
+    }
+  };
+
+  // Initial fetch
   useEffect(() => {
-    const fetchOrders = async () => {
-      setTimeout(() => {
-        setOrders([
-          {
-            id: "ORD-001",
-            customerName: "John Doe",
-            customerEmail: "john@example.com",
-            total: 149.97,
-            status: "processing",
-            items: [
-              { name: "Pikachu", quantity: 1, price: 49.99 },
-              { name: "Charizard", quantity: 1, price: 99.99 }
-            ],
-            createdAt: "2024-01-15T10:30:00Z",
-            shippingAddress: "123 Main St, City, State 12345"
-          },
-          {
-            id: "ORD-002",
-            customerName: "Jane Smith",
-            customerEmail: "jane@example.com",
-            total: 89.99,
-            status: "shipped",
-            items: [
-              { name: "Blastoise", quantity: 1, price: 89.99 }
-            ],
-            createdAt: "2024-01-14T14:20:00Z",
-            shippingAddress: "456 Oak Ave, City, State 67890"
-          },
-          {
-            id: "ORD-003",
-            customerName: "Mike Johnson",
-            customerEmail: "mike@example.com",
-            total: 199.98,
-            status: "delivered",
-            items: [
-              { name: "Charizard", quantity: 2, price: 99.99 }
-            ],
-            createdAt: "2024-01-13T16:45:00Z",
-            shippingAddress: "789 Pine Rd, City, State 13579"
-          },
-          {
-            id: "ORD-004",
-            customerName: "Sarah Wilson",
-            customerEmail: "sarah@example.com",
-            total: 49.99,
-            status: "pending",
-            items: [
-              { name: "Pikachu", quantity: 1, price: 49.99 }
-            ],
-            createdAt: "2024-01-12T11:15:00Z",
-            shippingAddress: "321 Elm St, City, State 24680"
-          }
-        ]);
-        setLoading(false);
-      }, 1000);
-    };
-
     fetchOrders();
   }, []);
+
+  // Auto-refresh every 1 second to get real-time updates
+  useEffect(() => {
+    const interval = setInterval(() => {
+      fetchOrders();
+    }, 1000); // Refresh every 1 second
+
+    return () => clearInterval(interval);
+  }, []);
+
+  // Manual refresh function
+  const handleRefresh = () => {
+    setLoading(true);
+    fetchOrders();
+  };
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -157,10 +148,33 @@ export default function AdminOrdersPage() {
     }
   });
 
-  const handleStatusChange = (orderId: string, newStatus: string) => {
-    setOrders(orders.map(order => 
-      order.id === orderId ? { ...order, status: newStatus as any } : order
-    ));
+  const handleStatusChange = async (orderId: string, newStatus: string) => {
+    try {
+      // Optimistically update the UI
+      setOrders(orders.map(order => 
+        order.id === orderId ? { ...order, status: newStatus as any } : order
+      ));
+
+      // Update the database
+      const response = await fetch('/api/orders', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ orderId, status: newStatus }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update order status');
+      }
+
+      // Refresh the orders after successful update
+      await fetchOrders();
+    } catch (error) {
+      console.error('Error updating order status:', error);
+      // Revert the optimistic update on error
+      await fetchOrders();
+    }
   };
 
   if (loading) {
@@ -175,8 +189,20 @@ export default function AdminOrdersPage() {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold text-gray-900">Order Management</h1>
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">Order Management</h1>
+          <p className="text-sm text-gray-500 mt-1">
+            Last updated: {new Date(lastFetch).toLocaleTimeString()} • Auto-refreshing every 1 second
+          </p>
+        </div>
         <div className="flex space-x-4">
+          <button 
+            onClick={handleRefresh}
+            className="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors flex items-center space-x-2"
+          >
+            <RefreshCw size={16} className={loading ? "animate-spin" : ""} />
+            <span>Refresh</span>
+          </button>
           <button className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2">
             <Download size={16} />
             <span>Export Orders</span>

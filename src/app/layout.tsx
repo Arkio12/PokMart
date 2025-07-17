@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import { Header } from "@/components/Header";
 import { CartProvider } from "@/context/CartContext";
 import { AuthProvider } from "@/context/AuthContext";
 import { PokemonProvider } from "@/context/PokemonContext";
+import { ConditionalLayout } from "@/components/ConditionalLayout";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -34,10 +34,9 @@ export default function RootLayout({
         <AuthProvider>
           <PokemonProvider>
             <CartProvider>
-              <Header />
-              <main className="min-h-screen">
+              <ConditionalLayout>
                 {children}
-              </main>
+              </ConditionalLayout>
             </CartProvider>
           </PokemonProvider>
         </AuthProvider>

@@ -12,10 +12,13 @@ interface InventoryModalProps {
 }
 
 export function InventoryModal({ isOpen, onClose }: InventoryModalProps) {
-  const { pokemon, toggleStock, updatePokemon } = usePokemon();
+  const { pokemon, toggleStock, updatePokemon, updateStockQuantity } = usePokemon();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'inStock' | 'outOfStock'>('all');
   const [filteredPokemon, setFilteredPokemon] = useState<Pokemon[]>([]);
+  const [showQuantityModal, setShowQuantityModal] = useState(false);
+  const [selectedPokemon, setSelectedPokemon] = useState<Pokemon | null>(null);
+  const [quantityInput, setQuantityInput] = useState('');
 
   useEffect(() => {
     if (isOpen) {
@@ -145,6 +148,9 @@ export function InventoryModal({ isOpen, onClose }: InventoryModalProps) {
                         Type
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Quantity
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Status
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -183,6 +189,23 @@ export function InventoryModal({ isOpen, onClose }: InventoryModalProps) {
                             ))}
                           </div>
                         </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          <div className="flex items-center space-x-2">
+                            <span className={`font-medium ${item.inStock ? 'text-green-600' : 'text-red-600'}`}>
+                              {item.stock_quantity || 0}
+                            </span>
+                            <button
+                              onClick={() => {
+                                setSelectedPokemon(item);
+                                setQuantityInput(item.stock_quantity?.toString() || '0');
+                                setShowQuantityModal(true);
+                              }}
+                              className="text-blue-600 hover:text-blue-800 text-xs underline"
+                            >
+                              Edit
+                            </button>
+                          </div>
+                        </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(item.inStock)}`}>
                             {getStatusText(item.inStock)}
@@ -190,7 +213,17 @@ export function InventoryModal({ isOpen, onClose }: InventoryModalProps) {
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                           <button
-                            onClick={() => handleToggleStock(item.id)}
+                            onClick={() => {
+                              if (!item.inStock) {
+                                // If item is out of stock, ask for quantity
+                                setSelectedPokemon(item);
+                                setQuantityInput('');
+                                setShowQuantityModal(true);
+                              } else {
+                                // If item is in stock, mark as out of stock
+                                handleToggleStock(item.id);
+                              }
+                            }}
                             className="flex items-center space-x-2 text-blue-600 hover:text-blue-800 cursor-pointer"
                           >
                             {item.inStock ? (
@@ -224,6 +257,70 @@ export function InventoryModal({ isOpen, onClose }: InventoryModalProps) {
             )}
           </div>
         </motion.div>
+        
+        {/* Quantity Modal */}
+        {showQuantityModal && selectedPokemon && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-60 p-4">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              transition={{ duration: 0.2 }}
+              className="bg-white rounded-lg p-6 w-full max-w-md"
+            >
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                Update Stock Quantity
+              </h3>
+              <p className="text-sm text-gray-600 mb-4">
+                Set the stock quantity for <strong>{selectedPokemon.name}</strong>.
+                If quantity is 0, the item will be marked as "Out of Stock".
+              </p>
+              
+              <div className="mb-4">
+                <label htmlFor="quantity" className="block text-sm font-medium text-gray-700 mb-2">
+                  Stock Quantity
+                </label>
+                <input
+                  id="quantity"
+                  type="number"
+                  min="0"
+                  value={quantityInput}
+                  onChange={(e) => setQuantityInput(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
+                  placeholder="Enter quantity"
+                  autoFocus
+                />
+              </div>
+              
+              <div className="flex justify-end space-x-3">
+                <button
+                  onClick={() => {
+                    setShowQuantityModal(false);
+                    setSelectedPokemon(null);
+                    setQuantityInput('');
+                  }}
+                  className="px-4 py-2 text-gray-600 hover:text-gray-800"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => {
+                    const quantity = parseInt(quantityInput);
+                    if (!isNaN(quantity) && quantity >= 0) {
+                      updateStockQuantity(selectedPokemon.id, quantity);
+                    }
+                    setShowQuantityModal(false);
+                    setSelectedPokemon(null);
+                    setQuantityInput('');
+                  }}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                >
+                  Update
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
       </div>
     </AnimatePresence>
   );

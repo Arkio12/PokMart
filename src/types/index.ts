@@ -13,6 +13,8 @@ export interface Pokemon {
   speed: number;
   inStock: boolean;
   featured: boolean;
+  hidden?: boolean;
+  stock_quantity?: number;
   // Optional fields for backward compatibility
   stats?: PokemonStats;
 }

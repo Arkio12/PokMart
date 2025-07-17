@@ -2,16 +2,21 @@
 
 import { PokemonCard } from '@/components/PokemonCard';
 import { motion } from 'framer-motion';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { usePokemon } from '@/context/PokemonContext';
 
 export default function Shop() {
-  const { pokemon } = usePokemon();
+  const { pokemon, refreshPokemon } = usePokemon();
   const [filter, setFilter] = useState<string>('all');
   
+  // Refresh Pokemon data when component mounts to ensure we have the latest data
+  useEffect(() => {
+    refreshPokemon();
+  }, [refreshPokemon]);
+  
   const filteredPokemon = filter === 'all' 
-    ? pokemon 
-    : pokemon.filter(pokemon => pokemon.type && pokemon.type.includes(filter as any));
+    ? pokemon.filter(pokemon => !pokemon.hidden) 
+    : pokemon.filter(pokemon => pokemon.type && pokemon.type.includes(filter as any) && !pokemon.hidden);
 
   const types = ['all', 'fire', 'water', 'grass', 'electric', 'psychic', 'dragon', 'flying'];
 
@@ -54,7 +59,7 @@ export default function Shop() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.6, delay: 0.4 }}
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 text-black"
         >
           {filteredPokemon.map((pokemon, index) => (
             <motion.div
