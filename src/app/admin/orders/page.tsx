@@ -293,6 +293,7 @@ export default function AdminOrdersPage() {
             className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black"
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value)}
+            style={{ color: 'black' }}
           >
             <option value="newest">Newest First</option>
             <option value="oldest">Oldest First</option>
