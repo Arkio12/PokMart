@@ -23,7 +23,7 @@ export default function AdminUsersPage() {
   const [filterRole, setFilterRole] = useState("all");
   const [filterStatus, setFilterStatus] = useState("all");
   const [showAddModal, setShowAddModal] = useState(false);
-  const [newUser, setNewUser] = useState({ name: "", email: "", role: "customer" });
+  const [newUser, setNewUser] = useState({ name: "", email: "", role: "customer", password: "" });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
@@ -126,7 +126,7 @@ export default function AdminUsersPage() {
   const handleAddUser = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!newUser.name || !newUser.email || !newUser.role) {
+    if (!newUser.name || !newUser.email || !newUser.role || !newUser.password) {
       alert('Please fill in all required fields');
       return;
     }
@@ -143,6 +143,7 @@ export default function AdminUsersPage() {
           name: newUser.name,
           email: newUser.email,
           role: newUser.role,
+          password: newUser.password,
         }),
       });
       
@@ -166,7 +167,7 @@ export default function AdminUsersPage() {
       }]);
       
       // Reset form and close modal
-      setNewUser({ name: '', email: '', role: 'customer' });
+      setNewUser({ name: '', email: '', role: 'customer', password: '' });
       setShowAddModal(false);
       
     } catch (error) {
@@ -443,6 +444,21 @@ export default function AdminUsersPage() {
                   <option value="admin">Admin</option>
                   <option value="moderator">Moderator</option>
                 </select>
+              </div>
+              
+              <div>
+                <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
+                  Password:
+                </label>
+                <input
+                  type="password"
+                  id="password"
+                  value={newUser.password}
+                  onChange={(e) => setNewUser({...newUser, password: e.target.value})}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black"
+                  placeholder="Enter password for the user"
+                  required
+                />
               </div>
               
               <div className="flex space-x-3 pt-4">
