@@ -379,18 +379,43 @@ const [userToDelete, setUserToDelete] = useState<User | null>(null);
             </div>
 
 {/* Add User */}
-<button onClick={handleAddUser} className="mt-3 w-full inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-  Add User
-</button>
 <div className="bg-white p-4 rounded-lg border mb-6">
-  <label className="block text-sm font-medium text-gray-700">Password</label>
-  <input
-    type="password"
-    value={password}
-    onChange={(e) => setPassword(e.target.value)}
-    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-purple-500 focus:ring-purple-500 sm:text-sm"
-    placeholder="Enter user password"
-  />
+  <h3 className="text-lg font-medium text-gray-900 mb-4">Add New User</h3>
+  <div className="space-y-4">
+    <div>
+      <label className="block text-sm font-medium text-gray-700">Email</label>
+      <input
+        type="email"
+        value={newUserEmail}
+        onChange={(e) => setNewUserEmail(e.target.value)}
+        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-purple-500 focus:ring-purple-500 sm:text-sm"
+        placeholder="Enter user email"
+      />
+    </div>
+    <div>
+      <label className="block text-sm font-medium text-gray-700">Name</label>
+      <input
+        type="text"
+        value={newUserName}
+        onChange={(e) => setNewUserName(e.target.value)}
+        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-purple-500 focus:ring-purple-500 sm:text-sm"
+        placeholder="Enter user name"
+      />
+    </div>
+    <div>
+      <label className="block text-sm font-medium text-gray-700">Password</label>
+      <input
+        type="password"
+        value={newUserPassword}
+        onChange={(e) => setNewUserPassword(e.target.value)}
+        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-purple-500 focus:ring-purple-500 sm:text-sm"
+        placeholder="Enter user password"
+      />
+    </div>
+    <button onClick={handleAddUser} className="w-full inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+      Add User
+    </button>
+  </div>
 </div>
 
 {/* Filters */}
