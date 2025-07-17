@@ -31,6 +31,13 @@ interface DashboardStats {
   totalOrders: number;
   totalUsers: number;
   totalPokemon: number;
+  recentOrders: Array<{
+    id: string;
+    customerName: string;
+    total: number;
+    status: string;
+    date: string;
+  }>;
   topPokemon: Array<{
     name: string;
     sales: number;

@@ -441,21 +441,21 @@ export default function AdminPokemonPage() {
                 {pokemon.type?.map((type) => (
                   <span
                     key={type}
-                    className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs capitalize"
+                    className="px-2 py-1 bg-blue-100 text-black rounded-full text-xs capitalize"
                   >
                     {type}
                   </span>
                 ))}
               </div>
 
-              <p className="text-sm text-gray-600 mb-4 line-clamp-2">
+              <p className="text-sm text-black mb-4 line-clamp-2">
                 {pokemon.description}
               </p>
 
               {/* Stats Bar */}
               <div className="mb-4">
-                <div className="text-xs text-black-500 mb-1">Stats</div>
-                <div className="grid grid-cols-2 gap-2 text-xs">
+                <div className="text-xs text-black mb-1">Stats</div>
+                <div className="grid grid-cols-2 gap-2 text-xs text-black">
                   <div>HP: {pokemon.stats?.hp}</div>
                   <div>Attack: {pokemon.stats?.attack}</div>
                   <div>Defense: {pokemon.stats?.defense}</div>
@@ -470,8 +470,8 @@ export default function AdminPokemonPage() {
                     onClick={() => handleToggleStock(pokemon.id)}
                     className={`text-xs px-3 py-1 rounded-full ${
                       pokemon.inStock
-                        ? 'bg-red-100 text-red-800 hover:bg-red-200'
-                        : 'bg-green-100 text-green-800 hover:bg-green-200'
+                        ? 'bg-red-100 text-black hover:bg-red-200'
+                        : 'bg-green-100 text-black hover:bg-green-200'
                     }`}
                   >
                     {pokemon.inStock ? 'Mark Out of Stock' : 'Mark In Stock'}
@@ -480,8 +480,8 @@ export default function AdminPokemonPage() {
                     onClick={() => handleToggleFeatured(pokemon.id)}
                     className={`text-xs px-3 py-1 rounded-full ${
                       pokemon.featured
-                        ? 'bg-yellow-100 text-yellow-800 hover:bg-yellow-200'
-                        : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
+                        ? 'bg-yellow-100 text-black hover:bg-yellow-200'
+                        : 'bg-gray-100 text-black hover:bg-gray-200'
                     }`}
                   >
                     {pokemon.featured ? 'Unfeature' : 'Feature'}
