@@ -3,9 +3,9 @@ import { supabaseHelpers } from '@/lib/supabase';
 
 export async function POST(request: NextRequest) {
   try {
-    const { id, email, name } = await request.json();
+const { id, email, name, role } = await request.json();
 
-    if (!id || !email || !name) {
+    if (!id || !email || !name || !role) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
@@ -14,6 +14,7 @@ export async function POST(request: NextRequest) {
       id,
       email,
       name,
+      role,
     });
 
     return NextResponse.json({ user });

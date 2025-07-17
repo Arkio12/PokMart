@@ -33,6 +33,7 @@ export interface User {
   id: string;
   email: string;
   name: string;
+  role?: 'customer' | 'admin' | 'moderator';
   created_at?: string;
   updated_at?: string;
 }
@@ -259,7 +260,7 @@ export const supabaseHelpers = {
     return data;
   },
 
-  async createOrGetUser(userData: { id: string; email: string; name: string; }): Promise<User> {
+  async createOrGetUser(userData: { id: string; email: string; name: string; role?: 'customer' | 'admin' | 'moderator'; }): Promise<User> {
     // First check if user exists
     const user = await this.getUserById(userData.id);
     if (user) {
@@ -273,6 +274,7 @@ export const supabaseHelpers = {
         id: userData.id,
         email: userData.email,
         name: userData.name,
+        role: userData.role || 'customer',
       })
       .select()
       .single();
