@@ -3,7 +3,8 @@ import { supabaseHelpers } from '@/lib/supabase';
 
 export async function POST(request: NextRequest) {
   try {
-const { id, email, name, role } = await request.json();
+const { email, name, role } = await request.json();
+    const id = crypto.randomUUID();
 
     if (!id || !email || !name || !role) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
