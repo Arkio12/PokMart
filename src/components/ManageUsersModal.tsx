@@ -32,7 +32,7 @@ interface UserStats {
 }
 
 export function ManageUsersModal({ isOpen, onClose }: ManageUsersModalProps) {
-  const { getAllUsers, updateUser, deleteUser, banUser, unbanUser } = useAuth();
+const { getAllUsers, updateUser, deleteUser, banUser, unbanUser, register } = useAuth();
   const [users, setUsers] = useState<User[]>([]);
   const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -42,8 +42,32 @@ export function ManageUsersModal({ isOpen, onClose }: ManageUsersModalProps) {
   const [showUserDetails, setShowUserDetails] = useState(false);
   const [showEditUser, setShowEditUser] = useState(false);
 const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-const [password, setPassword] = useState('');
-  const [userToDelete, setUserToDelete] = useState<User | null>(null);
+const [showAddUser, setShowAddUser] = useState(false);
+const [newUserEmail, setNewUserEmail] = useState('');
+const [newUserName, setNewUserName] = useState('');
+const [newUserPassword, setNewUserPassword] = useState('');
+const [userToDelete, setUserToDelete] = useState<User | null>(null);
+
+  const handleAddUser = async () => {
+    if (!newUserEmail || !newUserPassword || !newUserName) {
+      alert('Please fill in all fields');
+      return;
+    }
+
+    const result = await register(newUserEmail, newUserPassword, newUserName);
+    if (!result.success) {
+      alert(`Failed to add user: ${result.message}`);
+      return;
+    }
+
+    alert(result.message);
+    // Reset form
+    setNewUserEmail('');
+    setNewUserName('');
+    setNewUserPassword('');
+    setShowAddUser(false);
+    loadUsers();
+  };
   const [stats, setStats] = useState<UserStats>({
     totalUsers: 0,
     activeUsers: 0,
@@ -355,6 +379,9 @@ const [password, setPassword] = useState('');
             </div>
 
 {/* Add User */}
+<button onClick={handleAddUser} className="mt-3 w-full inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+  Add User
+</button>
 <div className="bg-white p-4 rounded-lg border mb-6">
   <label className="block text-sm font-medium text-gray-700">Password</label>
   <input
