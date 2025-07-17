@@ -556,6 +556,32 @@ export const supabaseHelpers = {
     return data || [];
   },
 
+  async deleteOrder(id: string): Promise<Order> {
+    // First get the order to return it
+    const order = await this.getOrderById(id);
+    if (!order) {
+      throw new Error('Order not found');
+    }
+
+    // Delete order items first (foreign key constraint)
+    const { error: itemsError } = await supabase
+      .from('order_items')
+      .delete()
+      .eq('order_id', id);
+
+    if (itemsError) throw itemsError;
+
+    // Delete the order
+    const { error: orderError } = await supabase
+      .from('orders')
+      .delete()
+      .eq('id', id);
+
+    if (orderError) throw orderError;
+
+    return order;
+  },
+
   async getOrderStats(): Promise<{
     totalOrders: number;
     totalRevenue: number;
