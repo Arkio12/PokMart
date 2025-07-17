@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { Search, UserPlus, Shield, Ban, Mail, Calendar, X } from "lucide-react";
 import { motion } from "framer-motion";
+import { supabaseHelpers, supabase } from '@/lib/supabase';
 
 interface User {
   id: string;
@@ -28,55 +29,37 @@ export default function AdminUsersPage() {
 
   useEffect(() => {
     const fetchUsers = async () => {
-      setTimeout(() => {
-        setUsers([
-          {
-            id: "1",
-            name: "John Doe",
-            email: "john@example.com",
-            role: "customer",
-            status: "active",
-            createdAt: "2024-01-15T10:30:00Z",
-            lastLogin: "2024-01-20T14:20:00Z",
-            orders: 5,
-            totalSpent: 249.95
-          },
-          {
-            id: "2",
-            name: "Jane Smith",
-            email: "jane@example.com",
-            role: "customer",
-            status: "active",
-            createdAt: "2024-01-10T08:15:00Z",
-            lastLogin: "2024-01-19T16:45:00Z",
-            orders: 3,
-            totalSpent: 189.97
-          },
-          {
-            id: "3",
-            name: "Admin User",
-            email: "admin@pokemart.com",
-            role: "admin",
-            status: "active",
-            createdAt: "2024-01-01T00:00:00Z",
-            lastLogin: "2024-01-20T09:00:00Z",
-            orders: 0,
-            totalSpent: 0
-          },
-          {
-            id: "4",
-            name: "Mike Johnson",
-            email: "mike@example.com",
-            role: "customer",
-            status: "banned",
-            createdAt: "2024-01-08T12:30:00Z",
-            lastLogin: "2024-01-18T11:20:00Z",
-            orders: 1,
-            totalSpent: 49.99
-          }
-        ]);
+      try {
+        // Fetch users from Supabase
+        const { data: usersData, error } = await supabase
+          .from('users')
+          .select('*')
+          .order('created_at', { ascending: false });
+        
+        if (error) {
+          console.error('Error fetching users:', error);
+          setUsers([]);
+        } else {
+          // Transform data to match the expected format
+          const transformedUsers = usersData.map(user => ({
+            id: user.id,
+            name: user.name,
+            email: user.email,
+            role: user.role || 'customer',
+            status: 'active', // Default status since it's not in the database
+            createdAt: user.created_at || new Date().toISOString(),
+            lastLogin: user.updated_at || user.created_at || new Date().toISOString(),
+            orders: 0, // This would need to be calculated from orders table
+            totalSpent: 0 // This would need to be calculated from orders table
+          }));
+          setUsers(transformedUsers);
+        }
+      } catch (error) {
+        console.error('Error fetching users:', error);
+        setUsers([]);
+      } finally {
         setLoading(false);
-      }, 1000);
+      }
     };
 
     fetchUsers();
@@ -148,31 +131,35 @@ export default function AdminUsersPage() {
       });
       
       if (!response.ok) {
-        throw new Error('Failed to create user');
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to create user');
       }
       
-      const createdUser = await response.json();
+      const result = await response.json();
+      const createdUser = result.user;
       
       // Add the new user to the local state
-      setUsers([...users, {
+      setUsers([{
         id: createdUser.id,
         name: createdUser.name,
         email: createdUser.email,
         role: createdUser.role,
         status: 'active',
-        createdAt: new Date().toISOString(),
-        lastLogin: new Date().toISOString(),
+        createdAt: createdUser.created_at || new Date().toISOString(),
+        lastLogin: createdUser.created_at || new Date().toISOString(),
         orders: 0,
         totalSpent: 0
-      }]);
+      }, ...users]);
       
       // Reset form and close modal
       setNewUser({ name: '', email: '', role: 'customer', password: '' });
       setShowAddModal(false);
       
+      alert('User created successfully!');
+      
     } catch (error) {
       console.error('Error creating user:', error);
-      alert('Failed to create user. Please try again.');
+      alert(`Failed to create user: ${error.message}`);
     } finally {
       setIsSubmitting(false);
     }
