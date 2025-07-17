@@ -268,7 +268,7 @@ export default function AdminOrdersPage() {
             <input
               type="text"
               placeholder="Search orders..."
-              className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg w-full focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg w-full focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
@@ -290,7 +290,7 @@ export default function AdminOrdersPage() {
 
           {/* Sort */}
           <select
-            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black"
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value)}
           >
@@ -340,15 +340,15 @@ export default function AdminOrdersPage() {
                   transition={{ duration: 0.3 }}
                   className="hover:bg-gray-50"
                 >
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-black">
                     {order.id}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">{order.customerName}</div>
-                    <div className="text-sm text-gray-500">{order.customerEmail}</div>
+                    <div className="text-sm text-black">{order.customerName}</div>
+                    <div className="text-sm text-black">{order.customerEmail}</div>
                   </td>
                   <td className="px-6 py-4">
-                    <div className="text-sm text-gray-900">
+                    <div className="text-sm text-black">
                       {order.items.map((item, index) => (
                         <div key={index}>
                           {item.name} x{item.quantity}
@@ -356,7 +356,7 @@ export default function AdminOrdersPage() {
                       ))}
                     </div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-black">
                     ${order.total.toFixed(2)}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
@@ -375,7 +375,7 @@ export default function AdminOrdersPage() {
                       </select>
                     </div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-black">
                     {new Date(order.createdAt).toLocaleDateString()}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
