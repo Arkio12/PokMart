@@ -6,13 +6,14 @@ import {
   Filter, 
   Download, 
   Eye, 
-  Edit, 
+  Trash2, 
   Truck,
   CheckCircle,
   Clock,
   AlertCircle,
   Package,
-  RefreshCw
+  RefreshCw,
+  X
 } from "lucide-react";
 import { motion } from "framer-motion";
 
@@ -40,6 +41,8 @@ export default function AdminOrdersPage() {
   const [filterStatus, setFilterStatus] = useState("all");
   const [sortBy, setSortBy] = useState("newest");
   const [lastFetch, setLastFetch] = useState(Date.now());
+  const [showViewModal, setShowViewModal] = useState(false);
+  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
 
   const fetchOrders = async () => {
     try {
@@ -83,6 +86,13 @@ export default function AdminOrdersPage() {
 
     return () => clearInterval(interval);
   }, []);
+
+  // Check for orders older than 6 months and auto-delete them
+  useEffect(() => {
+    if (orders.length > 0) {
+      checkAndDeleteOldOrders();
+    }
+  }, [orders]);
 
   // Manual refresh function
   const handleRefresh = () => {
@@ -177,21 +187,66 @@ export default function AdminOrdersPage() {
     }
   };
 
-  const handleView = (orderId: string) => {
-    const order = orders.find(o => o.id === orderId);
-    if (order) {
-      alert(`Order Details:\n\nOrder ID: ${order.id}\nCustomer: ${order.customerName}\nEmail: ${order.customerEmail}\nTotal: $${order.total.toFixed(2)}\nStatus: ${order.status}\nDate: ${new Date(order.createdAt).toLocaleDateString()}\n\nItems:\n${order.items.map(item => `• ${item.name} x${item.quantity} - $${(item.price * item.quantity).toFixed(2)}`).join('\n')}`);
+  // Auto-delete orders older than 6 months
+  const checkAndDeleteOldOrders = async () => {
+    const sixMonthsAgo = new Date();
+    sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+    
+    const ordersToDelete = orders.filter(order => {
+      const orderDate = new Date(order.createdAt);
+      return orderDate < sixMonthsAgo;
+    });
+    
+    if (ordersToDelete.length > 0) {
+      console.log(`Auto-deleting ${ordersToDelete.length} orders older than 6 months`);
+      
+      for (const order of ordersToDelete) {
+        try {
+          await fetch(`/api/orders/${order.id}`, {
+            method: 'DELETE',
+          });
+        } catch (error) {
+          console.error(`Failed to delete order ${order.id}:`, error);
+        }
+      }
+      
+      // Refresh orders after deletion
+      await fetchOrders();
     }
   };
 
-  const handleEdit = (orderId: string) => {
+  const handleView = (orderId: string) => {
     const order = orders.find(o => o.id === orderId);
     if (order) {
-      const newStatus = prompt(`Edit order status for ${order.customerName}:\n\nCurrent status: ${order.status}\n\nEnter new status (pending, processing, shipped, delivered, cancelled):`, order.status);
-      if (newStatus && ['pending', 'processing', 'shipped', 'delivered', 'cancelled'].includes(newStatus)) {
-        handleStatusChange(orderId, newStatus);
-      } else if (newStatus) {
-        alert('Invalid status. Please use: pending, processing, shipped, delivered, or cancelled');
+      setSelectedOrder(order);
+      setShowViewModal(true);
+    }
+  };
+
+  const handleDelete = async (orderId: string) => {
+    const order = orders.find(o => o.id === orderId);
+    if (order) {
+      const isConfirmed = confirm(`Are you sure you want to delete this order?\n\nOrder ID: ${order.id}\nCustomer: ${order.customerName}\nTotal: $${order.total.toFixed(2)}\n\nThis action cannot be undone.`);
+      
+      if (isConfirmed) {
+        try {
+          const response = await fetch(`/api/orders/${orderId}`, {
+            method: 'DELETE',
+          });
+          
+          if (!response.ok) {
+            throw new Error('Failed to delete order');
+          }
+          
+          // Remove from local state
+          setOrders(orders.filter(o => o.id !== orderId));
+          
+          // Refresh orders
+          await fetchOrders();
+        } catch (error) {
+          console.error('Error deleting order:', error);
+          alert('Failed to delete order. Please try again.');
+        }
       }
     }
   };
@@ -407,10 +462,10 @@ export default function AdminOrdersPage() {
                         <Eye size={16} />
                       </button>
                       <button 
-                        className="text-green-600 hover:text-green-800"
-                        onClick={() => handleEdit(order.id)}
+                        className="text-red-600 hover:text-red-800"
+                        onClick={() => handleDelete(order.id)}
                       >
-                        <Edit size={16} />
+                        <Trash2 size={16} />
                       </button>
                     </div>
                   </td>
@@ -430,6 +485,115 @@ export default function AdminOrdersPage() {
           <button className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
             Clear Filters
           </button>
+        </div>
+      )}
+
+      {/* Order Details Modal */}
+      {showViewModal && selectedOrder && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <motion.div
+            initial={{ scale: 0.95, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0.95, opacity: 0 }}
+            className="bg-white rounded-lg p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto"
+          >
+            {/* Modal Header */}
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-bold text-gray-900">Order Details</h2>
+              <button
+                onClick={() => setShowViewModal(false)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <X size={24} />
+              </button>
+            </div>
+
+            {/* Order Info */}
+            <div className="space-y-6">
+              {/* Basic Info */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Order ID</label>
+                  <p className="text-sm text-black bg-gray-50 px-3 py-2 rounded-lg">{selectedOrder.id}</p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Date</label>
+                  <p className="text-sm text-black bg-gray-50 px-3 py-2 rounded-lg">
+                    {new Date(selectedOrder.createdAt).toLocaleDateString()}
+                  </p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Customer Name</label>
+                  <p className="text-sm text-black bg-gray-50 px-3 py-2 rounded-lg">{selectedOrder.customerName}</p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                  <p className="text-sm text-black bg-gray-50 px-3 py-2 rounded-lg">{selectedOrder.customerEmail}</p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Total Amount</label>
+                  <p className="text-sm text-black bg-gray-50 px-3 py-2 rounded-lg font-semibold">
+                    ${selectedOrder.total.toFixed(2)}
+                  </p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                  <div className="flex items-center space-x-2">
+                    {getStatusIcon(selectedOrder.status)}
+                    <span className={`px-2 py-1 rounded-full text-xs ${getStatusColor(selectedOrder.status)}`}>
+                      {selectedOrder.status}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Items */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-3">Items Ordered</label>
+                <div className="space-y-3">
+                  {selectedOrder.items.map((item, index) => (
+                    <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                      <div>
+                        <p className="font-medium text-black">{item.name}</p>
+                        <p className="text-sm text-gray-600">Quantity: {item.quantity}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-medium text-black">${(item.price * item.quantity).toFixed(2)}</p>
+                        <p className="text-sm text-gray-600">${item.price.toFixed(2)} each</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Order Summary */}
+              <div className="border-t pt-4">
+                <div className="flex justify-between items-center">
+                  <span className="text-lg font-semibold text-gray-900">Total:</span>
+                  <span className="text-lg font-bold text-green-600">${selectedOrder.total.toFixed(2)}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="flex justify-end space-x-4 mt-6 pt-4 border-t">
+              <button
+                onClick={() => setShowViewModal(false)}
+                className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors"
+              >
+                Close
+              </button>
+              <button
+                onClick={() => {
+                  setShowViewModal(false);
+                  handleDelete(selectedOrder.id);
+                }}
+                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+              >
+                Delete Order
+              </button>
+            </div>
+          </motion.div>
         </div>
       )}
     </div>
