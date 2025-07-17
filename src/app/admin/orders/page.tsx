@@ -177,6 +177,25 @@ export default function AdminOrdersPage() {
     }
   };
 
+  const handleView = (orderId: string) => {
+    const order = orders.find(o => o.id === orderId);
+    if (order) {
+      alert(`Order Details:\n\nOrder ID: ${order.id}\nCustomer: ${order.customerName}\nEmail: ${order.customerEmail}\nTotal: $${order.total.toFixed(2)}\nStatus: ${order.status}\nDate: ${new Date(order.createdAt).toLocaleDateString()}\n\nItems:\n${order.items.map(item => `• ${item.name} x${item.quantity} - $${(item.price * item.quantity).toFixed(2)}`).join('\n')}`);
+    }
+  };
+
+  const handleEdit = (orderId: string) => {
+    const order = orders.find(o => o.id === orderId);
+    if (order) {
+      const newStatus = prompt(`Edit order status for ${order.customerName}:\n\nCurrent status: ${order.status}\n\nEnter new status (pending, processing, shipped, delivered, cancelled):`, order.status);
+      if (newStatus && ['pending', 'processing', 'shipped', 'delivered', 'cancelled'].includes(newStatus)) {
+        handleStatusChange(orderId, newStatus);
+      } else if (newStatus) {
+        alert('Invalid status. Please use: pending, processing, shipped, delivered, or cancelled');
+      }
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-full">
@@ -381,10 +400,16 @@ export default function AdminOrdersPage() {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     <div className="flex space-x-2">
-                      <button className="text-blue-600 hover:text-blue-800">
+                      <button 
+                        className="text-blue-600 hover:text-blue-800"
+                        onClick={() => handleView(order.id)}
+                      >
                         <Eye size={16} />
                       </button>
-                      <button className="text-green-600 hover:text-green-800">
+                      <button 
+                        className="text-green-600 hover:text-green-800"
+                        onClick={() => handleEdit(order.id)}
+                      >
                         <Edit size={16} />
                       </button>
                     </div>
