@@ -46,7 +46,7 @@ export default function AdminUsersPage() {
             name: user.name,
             email: user.email,
             role: user.role || 'customer',
-            status: 'active', // Default status since it's not in the database
+            status: 'active' as const, // Default status since it's not in the database
             createdAt: user.created_at || new Date().toISOString(),
             lastLogin: user.updated_at || user.created_at || new Date().toISOString(),
             orders: 0, // This would need to be calculated from orders table
@@ -144,7 +144,7 @@ export default function AdminUsersPage() {
         name: createdUser.name,
         email: createdUser.email,
         role: createdUser.role,
-        status: 'active',
+        status: 'active' as const,
         createdAt: createdUser.created_at || new Date().toISOString(),
         lastLogin: createdUser.created_at || new Date().toISOString(),
         orders: 0,
@@ -159,7 +159,7 @@ export default function AdminUsersPage() {
       
     } catch (error) {
       console.error('Error creating user:', error);
-      alert(`Failed to create user: ${error.message}`);
+      alert(`Failed to create user: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
       setIsSubmitting(false);
     }
