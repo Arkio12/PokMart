@@ -203,7 +203,7 @@ export default function AdminDashboard() {
         totalPokemon: pokemon.length
       }) : null);
     }
-  }, [pokemon, stats]);
+  }, [pokemon]); 
 
   const handleAddPokemon = (newPokemon: Omit<Pokemon, 'id'>) => {
     addPokemon(newPokemon);
