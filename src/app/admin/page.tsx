@@ -455,7 +455,7 @@ export default function AdminDashboard() {
         className="bg-white p-6 rounded-lg shadow-sm border"
       >
         <h2 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
           <button 
             onClick={() => setIsAddPokemonModalOpen(true)}
             className="p-4 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors cursor-pointer"
@@ -490,7 +490,7 @@ export default function AdminDashboard() {
           </button>
           <button 
             onClick={() => setIsInventoryModalOpen(true)}
-            className="p-4 bg-yellow-50 hover:bg-yellow-100 rounded-lg transition-colors cursor-pointer flex flex-col items-center justify-center"
+            className="p-4 bg-yellow-50 hover:bg-yellow-100 rounded-lg transition-colors cursor-pointer"
           >
             <Archive size={24} className="text-yellow-600 mb-2" />
             <p className="font-medium text-yellow-900">Manage Stock</p>
