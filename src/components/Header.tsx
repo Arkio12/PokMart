@@ -1,6 +1,6 @@
 "use client";
 
-import { ShoppingCart, User, LogOut, Settings } from "lucide-react";
+import { ShoppingCart, User, LogOut, Settings, Menu, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { useCart } from "@/context/CartContext";
@@ -13,13 +13,18 @@ export function Header() {
   const { user, isAuthenticated, logout } = useAuth();
   const [showLogin, setShowLogin] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const [showMobileMenu, setShowMobileMenu] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+  const mobileMenuRef = useRef<HTMLDivElement>(null);
 
-  // Close user menu when clicking outside
+  // Close menus when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
         setShowUserMenu(false);
+      }
+      if (mobileMenuRef.current && !mobileMenuRef.current.contains(event.target as Node)) {
+        setShowMobileMenu(false);
       }
     };
 
@@ -57,6 +62,15 @@ export function Header() {
           </nav>
 
           <div className="flex items-center space-x-4">
+            {/* Mobile menu button */}
+            <button
+              onClick={() => setShowMobileMenu(!showMobileMenu)}
+              className="md:hidden p-2 rounded-md hover:bg-gray-800 transition-colors"
+              aria-label="Toggle mobile menu"
+            >
+              {showMobileMenu ? <X size={24} /> : <Menu size={24} />}
+            </button>
+
             {/* Cart */}
             <div className="relative">
               <Link href="/cart" className="relative">
@@ -124,6 +138,85 @@ export function Header() {
           </div>
         </div>
       </div>
+
+      {/* Mobile Menu */}
+      {showMobileMenu && (
+        <div 
+          ref={mobileMenuRef}
+          className="md:hidden bg-black border-t border-gray-800"
+        >
+          <div className="container mx-auto px-4 py-4 space-y-4">
+            <Link 
+              href="/" 
+              className="block text-lg text-white hover:text-gray-300 transition-colors"
+              onClick={() => setShowMobileMenu(false)}
+            >
+              Home
+            </Link>
+            <Link 
+              href="/shop" 
+              className="block text-lg text-white hover:text-gray-300 transition-colors"
+              onClick={() => setShowMobileMenu(false)}
+            >
+              Shop
+            </Link>
+            <Link 
+              href="/about" 
+              className="block text-lg text-white hover:text-gray-300 transition-colors"
+              onClick={() => setShowMobileMenu(false)}
+            >
+              About
+            </Link>
+            <Link 
+              href="/contact" 
+              className="block text-lg text-white hover:text-gray-300 transition-colors"
+              onClick={() => setShowMobileMenu(false)}
+            >
+              Contact
+            </Link>
+
+            {/* Mobile User Actions */}
+            <div className="pt-4 border-t border-gray-800">
+              {isAuthenticated ? (
+                <div className="space-y-3">
+                  <div className="text-white font-medium">Welcome, {user?.name}</div>
+                  {user?.isAdmin && (
+                    <Link
+                      href="/admin"
+                      className="flex items-center text-white hover:text-gray-300 transition-colors"
+                      onClick={() => setShowMobileMenu(false)}
+                    >
+                      <Settings size={16} className="mr-3" />
+                      Admin Panel
+                    </Link>
+                  )}
+                  <button
+                    onClick={() => {
+                      logout();
+                      setShowMobileMenu(false);
+                    }}
+                    className="flex items-center text-white hover:text-gray-300 transition-colors"
+                  >
+                    <LogOut size={16} className="mr-3" />
+                    Logout
+                  </button>
+                </div>
+              ) : (
+                <button
+                  onClick={() => {
+                    setShowLogin(true);
+                    setShowMobileMenu(false);
+                  }}
+                  className="flex items-center space-x-2 bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-md transition-colors text-white"
+                >
+                  <User size={20} />
+                  <span>Login</span>
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
       
       {/* Login Modal */}
       <Login isOpen={showLogin} onClose={() => setShowLogin(false)} />
