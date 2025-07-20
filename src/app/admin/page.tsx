@@ -249,11 +249,11 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 p-4 md:p-6">
       {/* Header */}
-      <div className="flex justify-between items-start">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
+      <div className="flex flex-col md:flex-row md:justify-between md:items-start space-y-4 md:space-y-0">
+        <div className="flex-1">
+          <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Dashboard</h1>
           {user && (
             <p className="text-sm text-gray-600 mt-1">Welcome back, {user.name || 'User'}!</p>
           )}
@@ -269,7 +269,7 @@ export default function AdminDashboard() {
           <div className="flex items-center space-x-4">
             {/* Real-time Data Indicator */}
             {isRealTimeData && (
-              <div className="flex items-center space-x-2 px-3 py-2 bg-green-50 border border-green-200 rounded-lg">
+              <div className="flex items-center space-x-2 px-3 py-2 bg-green-50 border border-green-200 rounded-lg w-full sm:w-auto justify-center sm:justify-start">
                 <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
                 <span className="text-sm font-medium text-green-800">Live Data</span>
                 <Activity size={16} className="text-green-600" />
