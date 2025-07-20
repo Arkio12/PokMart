@@ -34,7 +34,7 @@ export default function AdminLayout({
 }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const pathname = usePathname();
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
 
   // Close sidebar when clicking on navigation links (for mobile)
   const handleNavClick = () => {
@@ -101,7 +101,11 @@ export default function AdminLayout({
               </div>
               <span className="text-white text-sm">{user?.name || 'Admin User'}</span>
             </div>
-            <button className="text-gray-400 hover:text-white">
+            <button 
+              onClick={logout}
+              className="text-gray-400 hover:text-white transition-colors"
+              title="Logout"
+            >
               <LogOut size={20} />
             </button>
           </div>
