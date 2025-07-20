@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { 
   TrendingUp, 
   Users, 
@@ -13,7 +14,9 @@ import {
   Archive,
   RotateCcw,
   Clock,
-  User
+  User,
+  RefreshCw,
+  Activity
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { AddPokemonModal } from "@/components/AddPokemonModal";
@@ -31,18 +34,34 @@ interface DashboardStats {
   totalOrders: number;
   totalUsers: number;
   totalPokemon: number;
+  avgOrderValue: number;
   recentOrders: Array<{
     id: string;
     customerName: string;
     total: number;
     status: string;
     date: string;
+    timeAgo: string;
   }>;
   topPokemon: Array<{
+    id: string;
     name: string;
     sales: number;
     revenue: number;
   }>;
+  salesTrends: {
+    dailyGrowth: number;
+    weeklyGrowth: number;
+    monthlyGrowth: number;
+  };
+  ordersByStatus: { [key: string]: number };
+  inventoryStatus: {
+    inStock: number;
+    outOfStock: number;
+    featured: number;
+    total: number;
+  };
+  lastUpdated: string;
 }
 
 interface LatestCheckoutUser {
@@ -73,22 +92,7 @@ export default function AdminDashboard() {
   const [isDeleteItemModalOpen, setIsDeleteItemModalOpen] = useState(false);
   const [isInventoryModalOpen, setIsInventoryModalOpen] = useState(false);
   
-  const [stats, setStats] = useState<DashboardStats>({
-    totalRevenue: 12450.50,
-    totalOrders: 156,
-    totalUsers: 89,
-    totalPokemon: pokemon.length,
-    recentOrders: [
-      { id: "1", customerName: "John Doe", total: 89.99, status: "shipped", date: "2024-01-15" },
-      { id: "2", customerName: "Jane Smith", total: 45.50, status: "processing", date: "2024-01-14" },
-      { id: "3", customerName: "Mike Johnson", total: 120.00, status: "delivered", date: "2024-01-13" },
-    ],
-    topPokemon: [
-      { name: "Pikachu", sales: 25, revenue: 1250.00 },
-      { name: "Charizard", sales: 18, revenue: 1800.00 },
-      { name: "Blastoise", sales: 15, revenue: 1200.00 },
-    ]
-  });
+  const [stats, setStats] = useState<DashboardStats | null>(null);
 
   const [loading, setLoading] = useState(true);
   const [isRealTimeData, setIsRealTimeData] = useState(false);
@@ -125,66 +129,81 @@ export default function AdminDashboard() {
     }
   };
 
-  useEffect(() => {
-    const fetchOrders = async () => {
-        try {
-            console.log('Fetching recent orders...');
-            const response = await fetch(`/api/orders?limit=3`);
-            
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            
-            const data = await response.json();
-            console.log('API Response:', data);
-            
-            if (data.orders && data.orders.length > 0) {
-                console.log('Processing orders:', data.orders);
-                const processedOrders = data.orders.map((order: OrderWithDetails) => {
-                    const processed = {
-                        id: order.id,
-                        customerName: order.user?.name || 'Unknown User',
-                        total: order.total,
-                        status: order.status,
-                        date: new Date(order.created_at).toLocaleDateString(),
-                    };
-                    console.log('Processed order:', processed);
-                    return processed;
-                });
-                
-                setStats((prev) => ({
-                    ...prev,
-                    recentOrders: processedOrders,
-                }));
-                setIsRealTimeData(true);
-                console.log('Updated stats with real-time data');
-            } else {
-                console.log('No orders found in API response, keeping mock data');
-            }
-        } catch (error) {
-            console.error('Error fetching recent orders:', error);
-            // Keep the default mock data if API fails
-        } finally {
-            setLoading(false);
-        }
-    };
+  // Function to fetch analytics data
+  const fetchAnalyticsData = async () => {
+    try {
+      console.log('Fetching dashboard analytics...');
+      const response = await fetch('/api/analytics');
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const result = await response.json();
+      console.log('Analytics API Response:', result);
+      
+      if (result.success && result.data) {
+        const analyticsData = result.data;
+        
+        // Transform analytics data to dashboard stats format
+        const dashboardStats: DashboardStats = {
+          totalRevenue: analyticsData.totalRevenue,
+          totalOrders: analyticsData.totalOrders,
+          totalUsers: analyticsData.totalUsers,
+          totalPokemon: analyticsData.inventoryStatus?.total || pokemon.length,
+          avgOrderValue: analyticsData.avgOrderValue,
+          recentOrders: analyticsData.recentOrders.slice(0, 3),
+          topPokemon: analyticsData.topSellingPokemon.slice(0, 3),
+          salesTrends: analyticsData.salesTrends,
+          ordersByStatus: analyticsData.ordersByStatus,
+          inventoryStatus: analyticsData.inventoryStatus,
+          lastUpdated: analyticsData.lastUpdated
+        };
+        
+        setStats(dashboardStats);
+        setIsRealTimeData(true);
+        console.log('Updated dashboard with real-time analytics data');
+      }
+    } catch (error) {
+      console.error('Error fetching dashboard analytics:', error);
+      // Set fallback stats if API fails
+      const fallbackStats: DashboardStats = {
+        totalRevenue: 0,
+        totalOrders: 0,
+        totalUsers: 0,
+        totalPokemon: pokemon.length,
+        avgOrderValue: 0,
+        recentOrders: [],
+        topPokemon: [],
+        salesTrends: { dailyGrowth: 0, weeklyGrowth: 0, monthlyGrowth: 0 },
+        ordersByStatus: {},
+        inventoryStatus: { inStock: 0, outOfStock: 0, featured: 0, total: pokemon.length },
+        lastUpdated: new Date().toISOString()
+      };
+      setStats(fallbackStats);
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     if (user) {
-        fetchOrders();
-        fetchLatestCheckoutUser();
+      fetchAnalyticsData();
+      fetchLatestCheckoutUser();
     } else {
-        // If no user, just stop loading
-        setLoading(false);
+      setLoading(false);
     }
   }, [user]);
 
   // Update total Pokemon count when pokemon array changes
   useEffect(() => {
-    setStats(prev => ({
-      ...prev,
-      totalPokemon: pokemon.length
-    }));
-  }, [pokemon]);
+    if (stats) {
+      setStats(prev => prev ? ({
+        ...prev,
+        totalPokemon: pokemon.length
+      }) : null);
+    }
+  }, [pokemon, stats]);
 
   const handleAddPokemon = (newPokemon: Omit<Pokemon, 'id'>) => {
     addPokemon(newPokemon);
@@ -218,10 +237,13 @@ export default function AdminDashboard() {
     </motion.div>
   );
 
-  if (loading) {
+  if (loading || !stats) {
     return (
-      <div className="flex items-center justify-center h-full">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-900"></div>
+      <div className="flex items-center justify-center h-full min-h-[500px]">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading dashboard analytics...</p>
+        </div>
       </div>
     );
   }
@@ -229,16 +251,46 @@ export default function AdminDashboard() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex justify-between items-center">
+      <div className="flex justify-between items-start">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
           {user && (
             <p className="text-sm text-gray-600 mt-1">Welcome back, {user.name || 'User'}!</p>
           )}
+          {stats?.lastUpdated && (
+            <p className="text-xs text-gray-500 mt-1 flex items-center">
+              <Clock size={12} className="mr-1" />
+              Last updated: {new Date(stats.lastUpdated).toLocaleTimeString()}
+            </p>
+          )}
         </div>
-        <div className="flex items-center space-x-2 text-sm text-gray-600">
-          <Calendar size={16} />
-          <span>Today: {new Date().toLocaleDateString()}</span>
+        
+        <div className="flex flex-col items-end space-y-3">
+          <div className="flex items-center space-x-4">
+            {/* Real-time Data Indicator */}
+            {isRealTimeData && (
+              <div className="flex items-center space-x-2 px-3 py-2 bg-green-50 border border-green-200 rounded-lg">
+                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                <span className="text-sm font-medium text-green-800">Live Data</span>
+                <Activity size={16} className="text-green-600" />
+              </div>
+            )}
+            
+            {/* Refresh Button */}
+            <button
+              onClick={fetchAnalyticsData}
+              disabled={loading}
+              className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              <RefreshCw size={16} className={loading ? 'animate-spin' : ''} />
+              <span>{loading ? 'Refreshing...' : 'Refresh Data'}</span>
+            </button>
+          </div>
+          
+          <div className="flex items-center space-x-2 text-sm text-gray-600">
+            <Calendar size={16} />
+            <span>Today: {new Date().toLocaleDateString()}</span>
+          </div>
         </div>
       </div>
 
@@ -411,13 +463,17 @@ export default function AdminDashboard() {
             <Package size={24} className="text-blue-600 mb-2" />
             <p className="font-medium text-blue-900">Add Pokemon</p>
           </button>
-          <button 
-            onClick={() => setIsAnalyticsModalOpen(true)}
-            className="p-4 bg-green-50 hover:bg-green-100 rounded-lg transition-colors cursor-pointer"
+          <Link 
+            href="/admin/analytics"
+            className="p-4 bg-green-50 hover:bg-green-100 rounded-lg transition-colors cursor-pointer group relative overflow-hidden"
           >
-            <TrendingUp size={24} className="text-green-600 mb-2" />
-            <p className="font-medium text-green-900">View Analytics</p>
-          </button>
+            <div className="absolute inset-0 bg-gradient-to-r from-green-600 to-blue-600 opacity-0 group-hover:opacity-10 transition-opacity"></div>
+            <div className="relative">
+              <TrendingUp size={24} className="text-green-600 mb-2 group-hover:scale-110 transition-transform" />
+              <p className="font-medium text-green-900">Real-Time Analytics</p>
+              <p className="text-xs text-green-600 mt-1">Live insights dashboard</p>
+            </div>
+          </Link>
           <button 
             onClick={() => setIsManageUsersModalOpen(true)}
             className="p-4 bg-purple-50 hover:bg-purple-100 rounded-lg transition-colors cursor-pointer"
